@@ -1,0 +1,11 @@
+{
+  "buildCommand": "echo 'Static site'",
+  "outputDirectory": ".",
+  "public": false,
+  "env": [],
+  "github": {
+    "enabled": true,
+    "autoAlias": true,
+    "autoJobCancelPreviousOnPush": true
+  }
+}
