@@ -1,11 +1,9 @@
 {
   "buildCommand": "echo 'Static site'",
   "outputDirectory": ".",
-  "public": false,
-  "env": [],
-  "github": {
-    "enabled": true,
-    "autoAlias": true,
-    "autoJobCancelPreviousOnPush": true
+  "framework": "static",
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_key"
   }
 }
