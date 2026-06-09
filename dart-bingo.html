@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#0a0a0a">
 <title>🎯 Dart Bingo</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -14,7 +16,17 @@
 :root{--r:#e8380d;--g:#22c55e;--b:#38bdf8;--y:#facc15;--p:#a78bfa}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{background:#0a0a0a;font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;color:#fff;font-size:15px}
+body{background:#0a0a0a;font-family:'Inter','Segoe UI',system-ui,sans-serif;overflow-x:hidden;color:#fff;font-size:15px}
+.anto{font-family:'Anton',Impact,'Arial Narrow',sans-serif;letter-spacing:1px}
+.neon-lbl{font-size:10px;color:#555;letter-spacing:3px;text-transform:uppercase;font-weight:600}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;animation:liveBlip 1.6s ease-in-out infinite}
+.p-row{display:flex;align-items:center;gap:12px;background:#131313;border:1px solid #1e1e1e;border-radius:14px;padding:12px 16px;margin-bottom:8px}
+.p-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border-width:2.5px;border-style:solid}
+.pill-host{border:1.5px solid #facc15;color:#facc15;border-radius:20px;padding:3px 12px;font-size:11px;font-weight:800;background:transparent;white-space:nowrap}
+.pill-ready{color:#22c55e;font-size:12px;font-weight:700}
+.game-code-big{font-family:'Anton',Impact,sans-serif;font-size:28px;letter-spacing:4px;color:#e8380d}
+.podium-wrap{display:flex;align-items:flex-end;justify-content:center;gap:6px}
+.podium-col{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
 input,select,button,textarea{font-family:inherit;font-size:inherit}
 button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
 input{outline:none}
@@ -33,6 +45,8 @@ input:focus{border-color:#555!important}
 @keyframes bingoPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
 @keyframes trophy   {0%{transform:scale(0) rotate(-15deg)}65%{transform:scale(1.15) rotate(4deg)}100%{transform:scale(1) rotate(0)}}
 @keyframes ripple   {0%{transform:scale(0);opacity:.6}100%{transform:scale(2.5);opacity:0}}
+@keyframes liveBlip {0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes tickerSlide{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
 /* ── Skeleton ──────────────────────────────────── */
 .sk{background:linear-gradient(90deg,#181818 25%,#252525 50%,#181818 75%);background-size:400px 100%;animation:shimmer 1.3s infinite;border-radius:8px}
@@ -453,73 +467,112 @@ function Lobby({onNew,onJoin,code,setCode,error,S}){
 
   const inp = {className:"inp",style:{marginBottom:12}};
 
+  const colC = COLORS[jCol]||COLORS.rood;
+
   return(
-    <div style={{minHeight:"100vh",background:"#0a0a0a",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"20px 16px"}}>
-      <div style={{marginBottom:32,textAlign:"center"}}>
-        <div style={{fontSize:42,marginBottom:4}}>🎯</div>
-        <div style={{fontSize:30,fontWeight:900,letterSpacing:5,color:"#e8380d"}}>DART BINGO</div>
-        <div style={{fontSize:11,color:"#555",letterSpacing:3,marginTop:4}}>MULTIPLAYER · DRINK · BINGO</div>
+    <div style={{minHeight:"100vh",background:"#0a0a0a",display:"flex",flexDirection:"column",padding:"0 0 40px"}}>
+      {/* App header */}
+      <div style={{padding:"18px 20px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:40,height:40,borderRadius:"50%",background:"linear-gradient(135deg,#e8380d 40%,#ff6b35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:"0 0 16px #e8380d66"}}>🎯</div>
+          <div style={{lineHeight:1}}>
+            <div className="anto" style={{fontSize:18,color:"#fff"}}>DART</div>
+            <div className="anto" style={{fontSize:18,color:"#e8380d"}}>BINGO</div>
+          </div>
+        </div>
+        <div style={{border:"1.5px solid #22c55e",borderRadius:20,padding:"5px 14px",fontSize:12,color:"#22c55e",display:"flex",alignItems:"center",gap:7,fontWeight:700}}>
+          <span className="live-dot" />live
+        </div>
       </div>
 
-      <div style={{width:"100%",maxWidth:380}}>
+      <div style={{padding:"0 20px",flex:1,maxWidth:440,width:"100%",margin:"0 auto"}}>
+        {/* Hero section */}
+        <div style={{marginBottom:20}}>
+          <div className="neon-lbl" style={{marginBottom:8}}>AVOND BIJ DE GOUDEN PIJL</div>
+          {tab==="new"
+            ? <div className="anto" style={{fontSize:"clamp(2.4rem,11vw,3.8rem)",lineHeight:.92,marginBottom:10}}>MAAK EEN<br/>NIEUW SPEL</div>
+            : <div className="anto" style={{fontSize:"clamp(2.4rem,11vw,3.8rem)",lineHeight:.92,marginBottom:10}}>IEDEREEN<br/>AAN DE<br/>OCHE?</div>
+          }
+          <div style={{fontSize:13,color:"#777",lineHeight:1.6}}>
+            {tab==="new"
+              ? "Maak een sessie aan en deel de code met vrienden."
+              : "Deel de code, kies je kleur en vink dartmomenten af. Volle rij = bingo = anderen drinken."
+            }
+          </div>
+        </div>
+
         {/* Tab switcher */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",background:"#111",borderRadius:12,padding:4,marginBottom:16,border:"1px solid #1e1e1e"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",background:"#111",borderRadius:12,padding:4,marginBottom:20,border:"1px solid #1e1e1e"}}>
           {["new","join"].map(t=>(
-            <button key={t} onClick={()=>setTab(t)} style={{padding:"10px 0",borderRadius:9,background:tab===t?"#e8380d":"transparent",color:tab===t?"#fff":"#666",border:"none",fontWeight:900,fontSize:13,letterSpacing:1,transition:"all .15s"}}>
+            <button key={t} onClick={()=>setTab(t)} style={{padding:"10px 0",borderRadius:9,background:tab===t?"#e8380d":"transparent",color:tab===t?"#fff":"#555",border:"none",fontWeight:900,fontSize:13,letterSpacing:1,transition:"all .15s"}}>
               {t==="new"?"🆕 NIEUW":"🔗 JOIN"}
             </button>
           ))}
         </div>
 
-        <div style={{background:"#111",borderRadius:16,padding:"20px 18px",border:"1px solid #1e1e1e"}}>
-          {tab==="new"?(
-            <>
-              <div style={{fontSize:11,color:"#888",letterSpacing:2,marginBottom:6}}>SESSIE NAAM</div>
-              <input {...inp} value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doNew()} style={{...inp.style,display:"block",width:"100%",background:"#1a1a1a",border:"1.5px solid #2a2a2a",borderRadius:10,padding:"12px 14px",color:"#fff",fontSize:16,fontWeight:700}} />
-              <div style={{fontSize:11,color:"#888",letterSpacing:2,marginBottom:8}}>SPELMODUS</div>
-              <div style={{display:"flex",gap:6,marginBottom:16}}>
-                {[["slokken","🍺"],["punten","🏆"]].map(([m,em])=>(
-                  <button key={m} onClick={()=>setGm(m)} style={{flex:1,padding:"10px 0",borderRadius:10,border:`2px solid ${gm===m?"#e8380d":"#2a2a2a"}`,background:gm===m?"#e8380d22":"transparent",color:gm===m?"#e8380d":"#666",fontWeight:900,fontSize:13}}>
-                    {em} {m.charAt(0).toUpperCase()+m.slice(1)}
-                  </button>
-                ))}
+        {tab==="new" ? (
+          <div style={{background:"#111",borderRadius:16,padding:"20px 18px",border:"1px solid #1e1e1e"}}>
+            <div className="neon-lbl" style={{marginBottom:8}}>SESSIE NAAM</div>
+            <input {...inp} value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doNew()} style={{...inp.style,display:"block",width:"100%",background:"#1a1a1a",border:"1.5px solid #2a2a2a",borderRadius:10,padding:"12px 14px",color:"#fff",fontSize:16,fontWeight:700}} />
+            <div className="neon-lbl" style={{marginBottom:8}}>SPELMODUS</div>
+            <div style={{display:"flex",gap:6,marginBottom:16}}>
+              {[["slokken","🍺"],["punten","🏆"]].map(([m,em])=>(
+                <button key={m} onClick={()=>setGm(m)} style={{flex:1,padding:"10px 0",borderRadius:10,border:`2px solid ${gm===m?"#e8380d":"#2a2a2a"}`,background:gm===m?"#e8380d22":"transparent",color:gm===m?"#e8380d":"#555",fontWeight:900,fontSize:13}}>
+                  {em} {m.charAt(0).toUpperCase()+m.slice(1)}
+                </button>
+              ))}
+            </div>
+            <div className="neon-lbl" style={{marginBottom:8}}>WACHTWOORD <span style={{color:"#333"}}>(optioneel)</span></div>
+            <div style={{position:"relative",marginBottom:20}}>
+              <input value={pwd} onChange={e=>setPwd(e.target.value)} placeholder="Leeg = geen wachtwoord" type={showP?"text":"password"} style={{display:"block",width:"100%",background:"#1a1a1a",border:"1.5px solid #2a2a2a",borderRadius:10,padding:"12px 44px 12px 14px",color:"#fff",fontSize:14}} />
+              <button onClick={()=>setShowP(x=>!x)} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#555",fontSize:16,padding:0}}>{showP?"🙈":"👁️"}</button>
+            </div>
+            <Btn onClick={doNew} loading={busy} color="#e8380d">MAAK SESSIE AAN →</Btn>
+            <div style={{textAlign:"center",fontSize:12,color:"#444",marginTop:10}}>Jij bent de host — deel de code met vrienden</div>
+          </div>
+        ) : (
+          <>
+            {/* Profile preview card */}
+            <div style={{background:"#111",borderRadius:16,padding:"16px 20px",marginBottom:16,border:"1px solid #1e1e1e",display:"flex",alignItems:"center",gap:14}}>
+              <div style={{width:58,height:58,borderRadius:"50%",border:`3px solid ${colC.a}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,background:colC.cell,boxShadow:`0 0 14px ${colC.a}44`,flexShrink:0}}>
+                {jAv}
               </div>
-              <div style={{fontSize:11,color:"#888",letterSpacing:2,marginBottom:6}}>WACHTWOORD <span style={{color:"#555"}}>(optioneel)</span></div>
-              <div style={{position:"relative",marginBottom:20}}>
-                <input value={pwd} onChange={e=>setPwd(e.target.value)} placeholder="Leeg = geen wachtwoord" type={showP?"text":"password"} style={{display:"block",width:"100%",background:"#1a1a1a",border:"1.5px solid #2a2a2a",borderRadius:10,padding:"12px 44px 12px 14px",color:"#fff",fontSize:14}} />
-                <button onClick={()=>setShowP(x=>!x)} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#666",fontSize:16,padding:0}}>{showP?"🙈":"👁️"}</button>
+              <div>
+                <div style={{fontWeight:900,fontSize:18,lineHeight:1}}>{jName||"JIJ"}</div>
+                <div className="neon-lbl" style={{marginTop:4,color:colC.sub}}>{colC.lbl.split(" ")[1]||"ROOD"} TEAM</div>
               </div>
-              <Btn onClick={doNew} loading={busy} color="#e8380d">MAAK SESSIE AAN →</Btn>
-              <div style={{textAlign:"center",fontSize:12,color:"#555",marginTop:10}}>Jij bent de host — deel de code met vrienden</div>
-            </>
-          ):(
-            <>
-              <div style={{fontSize:11,color:"#888",letterSpacing:2,marginBottom:6}}>SESSIE CODE</div>
-              <input value={code} onChange={e=>setCode(e.target.value.trim().toLowerCase())} placeholder="bijv. abc12xyz" style={{display:"block",width:"100%",background:"#1a1a1a",border:"1.5px solid #2a2a2a",borderRadius:10,padding:"12px 14px",color:"#facc15",fontSize:18,fontWeight:900,letterSpacing:3,marginBottom:12,textTransform:"lowercase"}} />
-              <div style={{fontSize:11,color:"#888",letterSpacing:2,marginBottom:6}}>JOUW NAAM</div>
-              <input value={jName} onChange={e=>setJName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doJoin()} placeholder="Naam..." style={{display:"block",width:"100%",background:"#1a1a1a",border:"1.5px solid #2a2a2a",borderRadius:10,padding:"12px 14px",color:"#fff",fontSize:15,fontWeight:700,marginBottom:14}} />
-              <div style={{fontSize:11,color:"#888",letterSpacing:2,marginBottom:8}}>AVATAR & KLEUR</div>
-              <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:10}}>
-                {AVATARS.slice(0,12).map(a=>(
-                  <button key={a} onClick={()=>setJAv(a)} style={{fontSize:18,width:34,height:34,background:jAv===a?"#2a2a2a":"transparent",border:`1.5px solid ${jAv===a?"#555":"transparent"}`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center"}}>{a}</button>
-                ))}
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:14}}>
+            </div>
+
+            <div style={{background:"#111",borderRadius:16,padding:"20px 18px",border:"1px solid #1e1e1e"}}>
+              <div className="neon-lbl" style={{marginBottom:8}}>SESSIE CODE</div>
+              <input value={code} onChange={e=>setCode(e.target.value.trim().toLowerCase())} placeholder="bijv. abc12xyz" style={{display:"block",width:"100%",background:"#1a1a1a",border:"1.5px solid #2a2a2a",borderRadius:10,padding:"12px 14px",color:"#facc15",fontSize:20,fontWeight:900,letterSpacing:4,marginBottom:16,textTransform:"lowercase"}} />
+
+              <div className="neon-lbl" style={{marginBottom:8}}>JOUW NAAM</div>
+              <input value={jName} onChange={e=>setJName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doJoin()} placeholder="Naam..." style={{display:"block",width:"100%",background:"#1a1a1a",border:"1.5px solid #2a2a2a",borderRadius:10,padding:"12px 14px",color:"#fff",fontSize:15,fontWeight:700,marginBottom:16}} />
+
+              <div className="neon-lbl" style={{marginBottom:10}}>TEAMKLEUR</div>
+              <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:18}}>
                 {Object.entries(COLORS).map(([k,c])=>(
-                  <button key={k} onClick={()=>setJCol(k)} style={{padding:"8px 6px",borderRadius:10,border:`2px solid ${jCol===k?c.a:c.bd}`,background:jCol===k?c.a+"28":"transparent",color:jCol===k?c.a:"#666",fontSize:12,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",gap:4}}>
-                    <span style={{width:8,height:8,borderRadius:"50%",background:c.a,flexShrink:0,display:"inline-block"}} />{c.lbl.split(" ")[1]}
-                  </button>
+                  <button key={k} onClick={()=>setJCol(k)} style={{width:36,height:36,borderRadius:"50%",background:c.a,border:`3px solid ${jCol===k?"#fff":"transparent"}`,cursor:"pointer",transition:"border-color .12s",boxShadow:jCol===k?`0 0 10px ${c.a}88`:"none"}} title={c.lbl} />
                 ))}
               </div>
+
+              <div className="neon-lbl" style={{marginBottom:10}}>AVATAR</div>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:18}}>
+                {AVATARS.slice(0,8).map(a=>(
+                  <button key={a} onClick={()=>setJAv(a)} style={{width:42,height:42,fontSize:20,background:jAv===a?"#2a2a2a":"#141414",border:`2px solid ${jAv===a?"#555":"#1e1e1e"}`,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center"}}>{a}</button>
+                ))}
+              </div>
+
               <div style={{position:"relative",marginBottom:20}}>
                 <input value={jPwd} onChange={e=>setJPwd(e.target.value)} placeholder="Wachtwoord (indien vereist)" type={showP?"text":"password"} style={{display:"block",width:"100%",background:"#1a1a1a",border:"1.5px solid #2a2a2a",borderRadius:10,padding:"12px 44px 12px 14px",color:"#fff",fontSize:14}} />
-                <button onClick={()=>setShowP(x=>!x)} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#666",fontSize:16,padding:0}}>{showP?"🙈":"👁️"}</button>
+                <button onClick={()=>setShowP(x=>!x)} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#555",fontSize:16,padding:0}}>{showP?"🙈":"👁️"}</button>
               </div>
-              <Btn onClick={doJoin} loading={busy} color="#38bdf8">JOIN SESSIE →</Btn>
-            </>
-          )}
-          {error&&<div style={{color:"#f87171",fontSize:13,marginTop:12,background:"#1a0808",borderRadius:8,padding:"8px 12px",animation:"fadeUp .2s"}}>⚠️ {error}</div>}
-        </div>
+              <Btn onClick={doJoin} loading={busy} color="#e8380d">Klaar — naar de kaart →</Btn>
+            </div>
+          </>
+        )}
+        {error&&<div style={{color:"#f87171",fontSize:13,marginTop:12,background:"#1a0808",borderRadius:8,padding:"10px 14px",animation:"fadeUp .2s"}}>⚠️ {error}</div>}
       </div>
     </div>
   );
@@ -558,28 +611,35 @@ function Setup({sess,onStart,onPool,onBack,error,S}){
     <div style={{minHeight:"100vh",background:"#0a0a0a",padding:"0 0 32px"}}>
       {/* Header */}
       <div style={{padding:"14px 16px 12px",borderBottom:"1px solid #1a1a1a",display:"flex",alignItems:"center",gap:12,position:"sticky",top:0,background:"#0a0a0a",zIndex:10}}>
-        <button onClick={onBack} style={{background:"#1a1a1a",border:"none",borderRadius:10,width:38,height:38,fontSize:18,color:"#888",display:"flex",alignItems:"center",justifyContent:"center"}}>←</button>
+        <button onClick={onBack} style={{background:"#1a1a1a",border:"none",borderRadius:10,width:38,height:38,fontSize:20,color:"#888",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
         <div style={{flex:1}}>
-          <div style={{fontSize:18,fontWeight:900,color:"#e8380d",letterSpacing:2}}>🎯 SETUP</div>
-          <div style={{fontSize:11,color:"#666"}}>{sess.name} · {sess.game_mode==="punten"?"🏆 Punten":"🍺 Slokken"}</div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#e8380d,#ff6b35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🎯</div>
+            <div className="anto" style={{fontSize:16,color:"#fff"}}>DART</div>
+            <div className="anto" style={{fontSize:16,color:"#e8380d"}}>BINGO</div>
+          </div>
+          <div style={{fontSize:11,color:"#555",marginTop:2}}>{sess.name} · {sess.game_mode==="punten"?"🏆 Punten":"🍺 Slokken"}</div>
+        </div>
+        <div style={{border:"1.5px solid #22c55e",borderRadius:20,padding:"4px 12px",fontSize:11,color:"#22c55e",display:"flex",alignItems:"center",gap:6,fontWeight:700}}>
+          <span className="live-dot" style={{width:6,height:6}} />live
         </div>
       </div>
 
       <div style={{padding:"14px 16px",maxWidth:460,margin:"0 auto"}}>
-        {/* Session code */}
-        <div style={{background:"#111",border:"1px solid #1e1e1e",borderRadius:14,padding:"14px 16px",marginBottom:16}}>
-          <div style={{fontSize:10,color:"#666",letterSpacing:2,marginBottom:4}}>SESSIE CODE — deel met vrienden</div>
+        {/* Session code — prominent */}
+        <div style={{background:"#111",border:"1px solid #222",borderRadius:16,padding:"16px 20px",marginBottom:16}}>
+          <div className="neon-lbl" style={{marginBottom:8}}>GAME-CODE</div>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
-            <div style={{fontSize:26,fontWeight:900,color:"#facc15",letterSpacing:4}}>{sess.id}</div>
+            <div className="game-code-big">{sess.id}</div>
             <div style={{display:"flex",gap:6}}>
-              <button onClick={()=>setQr(x=>!x)} style={{background:"#1a1a1a",border:"1px solid #333",borderRadius:8,padding:"6px 10px",color:"#facc15",fontSize:12,fontWeight:800}}>QR</button>
-              <button onClick={copy} style={{background:"#1a1a1a",border:"1px solid #333",borderRadius:8,padding:"6px 10px",color:copied?"#22c55e":"#facc15",fontSize:12,fontWeight:800}}>{copied?"✓ OK":"📋"}</button>
-              <button onClick={()=>{if(navigator.share)navigator.share({title:"Dart Bingo",url});else navigator.clipboard?.writeText(url);}} style={{background:"#1a1a1a",border:"1px solid #333",borderRadius:8,padding:"6px 10px",color:"#facc15",fontSize:12,fontWeight:800}}>🔗</button>
+              <button onClick={()=>setQr(x=>!x)} style={{background:"#1a1a1a",border:"1px solid #2a2a2a",borderRadius:8,padding:"8px 12px",color:"#facc15",fontSize:12,fontWeight:800}}>⬛ QR</button>
+              <button onClick={copy} style={{background:"#1a1a1a",border:"1px solid #2a2a2a",borderRadius:8,padding:"8px 12px",color:copied?"#22c55e":"#facc15",fontSize:12,fontWeight:800}}>{copied?"✓":"📋"}</button>
+              <button onClick={()=>{if(navigator.share)navigator.share({title:"Dart Bingo",url});else navigator.clipboard?.writeText(url);}} style={{background:"#1a1a1a",border:"1px solid #2a2a2a",borderRadius:8,padding:"8px 12px",color:"#facc15",fontSize:12,fontWeight:800}}>🔗</button>
             </div>
           </div>
-          {qr&&<div style={{textAlign:"center",paddingTop:12}}>
+          {qr&&<div style={{textAlign:"center",paddingTop:14}}>
             <img src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(url)}&size=180x180&bgcolor=111111&color=facc15&margin=10`} style={{borderRadius:10,width:150}} alt="QR" />
-            <div style={{fontSize:11,color:"#666",marginTop:6}}>Scan om direct te joinen</div>
+            <div style={{fontSize:11,color:"#555",marginTop:6}}>Scan om direct te joinen</div>
           </div>}
         </div>
 
@@ -594,36 +654,53 @@ function Setup({sess,onStart,onPool,onBack,error,S}){
 
         {tab==="players"&&(
           <>
-            {pls.map((p,i)=>(
-              <div key={i} style={{background:"#111",border:`1.5px solid ${COLORS[p.color].bd}`,borderRadius:14,padding:"12px 14px",marginBottom:10}}>
-                <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
-                  <select value={p.color} onChange={e=>setPls(ps=>ps.map((pp,ii)=>ii===i?{...pp,color:e.target.value}:pp))}
-                    style={{background:"#1a1a1a",border:`1.5px solid ${COLORS[p.color].a}44`,borderRadius:8,color:COLORS[p.color].a,padding:"7px 10px",fontSize:12,fontWeight:900,flexShrink:0}}>
-                    {Object.entries(COLORS).map(([k,c])=>(
-                      <option key={k} value={k} disabled={used.includes(k)&&k!==p.color}>{c.lbl}{used.includes(k)&&k!==p.color?" ✗":""}</option>
-                    ))}
-                  </select>
-                  <input value={p.name} onChange={e=>setPls(ps=>ps.map((pp,ii)=>ii===i?{...pp,name:e.target.value}:pp))}
-                    placeholder="Naam..." style={{flex:1,background:"transparent",border:"none",borderBottom:"1.5px solid #2a2a2a",color:"#fff",fontSize:15,fontWeight:700,padding:"4px 0",outline:"none"}} />
-                  {pls.length>1&&<button onClick={()=>setPls(ps=>ps.filter((_,ii)=>ii!==i))} style={{background:"transparent",border:"none",color:"#f87171",fontSize:18,padding:0,lineHeight:1}}>✕</button>}
-                </div>
-                <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
-                  <div style={{display:"flex",gap:3}}>
-                    {AVATARS.slice(0,8).map(a=>(
-                      <button key={a} onClick={()=>setPls(ps=>ps.map((pp,ii)=>ii===i?{...pp,avatar:a}:pp))} style={{width:28,height:28,fontSize:15,background:p.avatar===a?"#2a2a2a":"transparent",border:`1px solid ${p.avatar===a?"#555":"transparent"}`,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center"}}>{a}</button>
-                    ))}
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <div className="neon-lbl">IN DE WACHTRUIMTE</div>
+              <div style={{fontSize:12,color:"#555",fontWeight:700}}>{pls.length}/{S.maxP}</div>
+            </div>
+            {pls.map((p,i)=>{
+              const pc=COLORS[p.color]||COLORS.rood;
+              return(
+              <div key={i} style={{background:"#111",border:`1.5px solid ${i===0?pc.a+"44":pc.bd}`,borderRadius:14,padding:"14px 16px",marginBottom:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+                  <div className="p-av" style={{borderColor:pc.a,background:pc.cell,fontSize:22}}>{p.avatar||"🎯"}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <input value={p.name} onChange={e=>setPls(ps=>ps.map((pp,ii)=>ii===i?{...pp,name:e.target.value}:pp))}
+                      placeholder="Naam..." style={{background:"transparent",border:"none",borderBottom:"1.5px solid #2a2a2a",color:"#fff",fontSize:16,fontWeight:800,padding:"2px 0",outline:"none",width:"100%"}} />
+                    <div style={{fontSize:10,color:pc.a,marginTop:3,letterSpacing:1,fontWeight:700}}>{pc.lbl.split(" ")[1]?.toUpperCase()}</div>
                   </div>
+                  {i===0
+                    ? <span className="pill-host">host</span>
+                    : <button onClick={()=>setPls(ps=>ps.filter((_,ii)=>ii!==i))} style={{background:"transparent",border:"none",color:"#f87171",fontSize:16,padding:0,lineHeight:1}}>✕</button>
+                  }
+                </div>
+                {/* Color selector */}
+                <div style={{display:"flex",gap:8,marginBottom:10}}>
+                  {Object.entries(COLORS).map(([k,c])=>(
+                    <button key={k} onClick={()=>setPls(ps=>ps.map((pp,ii)=>ii===i?{...pp,color:k}:pp))}
+                      disabled={used.includes(k)&&k!==p.color}
+                      style={{width:26,height:26,borderRadius:"50%",background:c.a,border:`3px solid ${p.color===k?"#fff":"transparent"}`,opacity:used.includes(k)&&k!==p.color?.35:1,cursor:used.includes(k)&&k!==p.color?"not-allowed":"pointer",transition:"border-color .12s"}} />
+                  ))}
+                </div>
+                {/* Avatar selector */}
+                <div style={{display:"flex",gap:4,alignItems:"center",flexWrap:"wrap"}}>
+                  {AVATARS.slice(0,8).map(a=>(
+                    <button key={a} onClick={()=>setPls(ps=>ps.map((pp,ii)=>ii===i?{...pp,avatar:a}:pp))}
+                      style={{width:32,height:32,fontSize:16,background:p.avatar===a?"#2a2a2a":"transparent",border:`1.5px solid ${p.avatar===a?"#555":"transparent"}`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center"}}>{a}</button>
+                  ))}
                   <div style={{display:"flex",gap:4,alignItems:"center",marginLeft:"auto"}}>
-                    <span style={{fontSize:11,color:"#666"}}>Team</span>
+                    <span style={{fontSize:10,color:"#555"}}>Team</span>
                     {[null,"A","B"].map(t=>(
-                      <button key={String(t)} onClick={()=>setPls(ps=>ps.map((pp,ii)=>ii===i?{...pp,team:t}:pp))} style={{width:28,height:28,borderRadius:7,border:`1.5px solid ${p.team===t?"#facc15":"#2a2a2a"}`,background:p.team===t?"#facc1522":"transparent",color:p.team===t?"#facc15":"#555",fontSize:11,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <button key={String(t)} onClick={()=>setPls(ps=>ps.map((pp,ii)=>ii===i?{...pp,team:t}:pp))}
+                        style={{width:26,height:26,borderRadius:7,border:`1.5px solid ${p.team===t?"#facc15":"#2a2a2a"}`,background:p.team===t?"#facc1522":"transparent",color:p.team===t?"#facc15":"#555",fontSize:10,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center"}}>
                         {t===null?"–":t}
                       </button>
                     ))}
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
             {pls.length<S.maxP&&(
               <button onClick={()=>{const free=Object.keys(COLORS).find(c=>!used.includes(c));if(free)setPls(ps=>[...ps,{color:free,name:`Speler ${ps.length+1}`,avatar:"🎯",team:null}]);}} style={{width:"100%",padding:"12px 0",background:"transparent",border:"1.5px dashed #2a2a2a",borderRadius:12,color:"#555",fontWeight:800,fontSize:13,marginBottom:14}}>
                 + Speler toevoegen
@@ -878,74 +955,61 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
   }
 
   return(
-    <div style={{minHeight:"100vh",background:t.bg,color:t.tx,fontFamily:"'Segoe UI',system-ui,sans-serif"}}>
-      <style>{`
-        @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.22)}100%{transform:scale(1)}}
-        @keyframes numPop{0%{transform:scale(1.6);opacity:0}100%{transform:scale(1);opacity:1}}
-        @keyframes bingoPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
-        @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes toastDrop{from{opacity:0;transform:translateY(-20px) translateX(-50%)}to{opacity:1;transform:translateY(0) translateX(-50%)}}
-      `}</style>
-
+    <div style={{minHeight:"100vh",background:t.bg,color:t.tx}}>
       {/* Toast: bingo alert */}
       {bAlert&&<div className="bingo-toast">{bAlert}</div>}
 
       {/* ── Sticky header ── */}
-      <div className="np" style={{position:"sticky",top:0,zIndex:50,background:t.bg,borderBottom:`1px solid ${t.bd}`,padding:"10px 12px"}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",maxWidth:460,margin:"0 auto"}}>
-          <div>
-            <div style={{fontSize:16,fontWeight:900,color:t.a,letterSpacing:2}}>🎯 DART BINGO</div>
-            <div style={{fontSize:10,color:t.sub,display:"flex",gap:6,alignItems:"center",marginTop:1}}>
-              <span>{sess.name}</span>
-              <span>· R{sess.round||1}</span>
-              {saveSt==="saving"&&<span style={{color:"#888"}}>· opslaan…</span>}
-              {saveSt==="ok"   &&<span style={{color:"#22c55e"}}>· ✓</span>}
-              {saveSt==="err"  &&<span style={{color:"#f87171"}}>· ✗ fout</span>}
-            </div>
+      <div className="np" style={{position:"sticky",top:0,zIndex:50,background:t.bg,borderBottom:`1px solid ${t.bd}`,padding:"10px 14px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,maxWidth:460,margin:"0 auto"}}>
+          <button onClick={onBack} style={{background:"transparent",border:"none",color:t.sub,fontSize:22,padding:0,lineHeight:1,flexShrink:0}}>‹</button>
+          <div style={{width:42,height:42,borderRadius:"50%",border:`2.5px solid ${t.a}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,background:t.cell,flexShrink:0,boxShadow:`0 0 10px ${t.a}44`}}>
+            {me.avatar||"🎯"}
           </div>
-          <div style={{display:"flex",gap:5,alignItems:"center"}}>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontWeight:900,fontSize:15,lineHeight:1.1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{me.name||"Speler"}</div>
+            <div style={{fontSize:10,color:t.sub,marginTop:1,letterSpacing:1}}>JOUW KAART{sess.round>1?` · R${sess.round}`:""}</div>
+          </div>
+          <div style={{textAlign:"right",flexShrink:0}}>
+            <div style={{fontSize:26,fontWeight:900,color:"#fff",lineHeight:1,animation:numAnim?"numPop .35s":""}} key={me.total_slok}>{me.total_slok||0}</div>
+            <div style={{fontSize:10,color:t.sub}}>SLOKKEN 🍺</div>
+          </div>
+          <div style={{display:"flex",gap:4,flexShrink:0}}>
             {S.chat&&<HBtn active={showCh} color={t.a} onClick={()=>setShowCh(x=>!x)}>💬</HBtn>}
             <HBtn active={showSt} color={t.a} onClick={()=>setShowSt(x=>!x)}>📊</HBtn>
             <HBtn active={showR} color={t.a} onClick={()=>setShowR(x=>!x)}>📋</HBtn>
             <HBtn color={t.sub} onClick={()=>setShowSe(true)}>⚙️</HBtn>
-            {isMy&&<HBtn color={t.a} onClick={()=>setConfRst(true)}>↺</HBtn>}
-            <HBtn color="#555" onClick={onBack}>✕</HBtn>
           </div>
         </div>
       </div>
 
-      <div style={{maxWidth:460,margin:"0 auto",padding:"10px 12px 32px"}}>
-        {/* Code bar */}
-        <div className="np" style={{background:t.card,border:`1px solid ${t.bd}`,borderRadius:10,padding:"7px 12px",marginBottom:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <span style={{fontSize:10,color:t.sub}}>CODE: <b style={{color:"#facc15",fontSize:13,letterSpacing:2}}>{sess.id}</b>{sess.password&&<span style={{marginLeft:6}}>🔒</span>}</span>
-          <div style={{display:"flex",gap:8}}>
-            <button onClick={()=>navigator.clipboard?.writeText(sess.id)} style={{background:"none",border:"none",color:t.sub,fontSize:13,padding:0,cursor:"pointer"}}>📋</button>
-            <button onClick={()=>{const u=shareUrl(sess.id);navigator.share?navigator.share({title:"Dart Bingo",url:u}):navigator.clipboard?.writeText(u);}} style={{background:"none",border:"none",color:t.sub,fontSize:13,padding:0,cursor:"pointer"}}>🔗</button>
-            <button onClick={()=>window.print()} style={{background:"none",border:"none",color:t.sub,fontSize:13,padding:0,cursor:"pointer"}}>🖨️</button>
+      <div style={{maxWidth:460,margin:"0 auto",padding:"10px 14px 130px"}}>
+        {/* Progress + code */}
+        <div className="np" style={{marginBottom:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+            <div style={{flex:1,background:t.bd,borderRadius:6,height:6,overflow:"hidden"}}>
+              <div style={{width:`${pct}%`,background:t.a,borderRadius:6,height:"100%",transition:"width .3s"}} />
+            </div>
+            <div style={{fontSize:12,color:t.sub,fontWeight:700,whiteSpace:"nowrap"}}>{filled}/9 ⭐</div>
+            <button onClick={()=>navigator.clipboard?.writeText(sess.id)} style={{background:"none",border:"none",color:t.sub,fontSize:11,padding:0,cursor:"pointer",whiteSpace:"nowrap"}}>
+              <b style={{color:"#facc1599",letterSpacing:1}}>{sess.id}</b> 📋
+            </button>
           </div>
         </div>
 
-        {/* Player tabs */}
-        <div className="tabs np" style={{marginBottom:10,gap:5}}>
-          {players.map(p=>{
-            const c=COLORS[p.color]||COLORS.rood;
-            const pL=LINES.filter(l=>l.every(i=>(p.counts||[])[i]>0)).length;
-            const mine=p.color===myCol;
-            const act=p.color===actCol;
-            const host=p.color===sess.host_color;
-            return(
-              <button key={p.color} onClick={()=>setActCol(p.color)} style={{flexShrink:0,minWidth:64,padding:"7px 8px",borderRadius:11,border:`2px solid ${act?c.a:c.bd}`,background:act?c.a+"2a":"transparent",color:act?c.a:c.sub,fontWeight:900,position:"relative"}}>
-                <div style={{fontSize:16,lineHeight:1}}>{p.avatar||"🎯"}</div>
-                <div style={{fontSize:10,marginTop:2,maxWidth:60,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
-                {!S.hideD&&(p.total_slok||0)>0&&<div style={{fontSize:9,color:c.a}}>{p.total_slok}{em}</div>}
-                {mine&&<div style={{position:"absolute",top:-6,left:-6,background:c.a,color:"#000",borderRadius:999,padding:"1px 5px",fontSize:8,fontWeight:900,letterSpacing:.5,boxShadow:`0 0 8px ${c.a}88`}}>JIJ</div>}
-                {host&&<div style={{position:"absolute",top:-6,right:mine?8:-6,fontSize:10,pointerEvents:"none"}}>👑</div>}
-                {pL>0&&<div style={{position:"absolute",bottom:-5,right:-5,background:c.a,color:"#000",borderRadius:999,width:16,height:16,fontSize:9,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,border:`2px solid ${t.bg}`}}>{pL}</div>}
-                {isH&&p.color!==myCol&&<button onClick={e=>{e.stopPropagation();if(window.confirm(`${p.name} verwijderen?`))onKick(p.color);}} style={{position:"absolute",top:-6,right:-6,background:"#f87171",border:"none",borderRadius:999,width:16,height:16,fontSize:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#000",cursor:"pointer",zIndex:2}}>✕</button>}
-              </button>
-            );
-          })}
-        </div>
+        {/* Activity ticker */}
+        {(me.log||[]).length>0&&(
+          <div className="np" style={{background:"#0f0f0f",border:`1px solid ${t.bd}`,borderRadius:10,padding:"8px 14px",marginBottom:10,overflow:"hidden"}}>
+            <div style={{fontSize:12,color:"#666",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>
+              {(me.log||[]).slice(0,4).map((e,i)=>(
+                <span key={e.id||i}>
+                  {i>0&&<span style={{color:"#333",margin:"0 10px"}}>·</span>}
+                  <span style={{color:e.type==="bingo"?t.a:e.type==="at"?"#facc15":"#666"}}>{e.msg}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* View-only */}
         {!isMy&&<div className="np" style={{background:"#181400",border:"1px solid #3a3400",borderRadius:10,padding:"8px 14px",marginBottom:10,fontSize:12,color:"#facc15",textAlign:"center"}}>
@@ -1014,16 +1078,6 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
           ⚠️ Bijna op {sl}limiet ({me.total_slok||0}/{S.maxD})
         </div>}
 
-        {/* Progress */}
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-          <div style={{flex:1,background:t.bd,borderRadius:6,height:7,overflow:"hidden"}}>
-            <div style={{width:`${pct}%`,background:t.a,borderRadius:6,height:"100%",transition:"width .3s"}} />
-          </div>
-          <div style={{fontSize:11,color:t.sub,whiteSpace:"nowrap",minWidth:72,textAlign:"right"}}>
-            {filled}/9 vakjes{filled<9?` · nog ${9-filled}`:" ✓"}
-          </div>
-        </div>
-
         {/* GRID */}
         <div className="grid pc" style={{marginBottom:12}}>
           {card.map((ev,i)=>{
@@ -1037,38 +1091,45 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
             const bg=hit?(glow?t.a:t.a+Math.round(alpha*255).toString(16).padStart(2,"0")):t.cell;
             const lp=useLongPress(()=>undo(i));
             return(
-              <div key={i} {...lp} onClick={()=>tap(i)} className={`cell${isMy?"":" view"}`} style={{background:bg,border:`2px solid ${glow?t.a:hit?t.a+"55":t.bd}`,boxShadow:glow?`0 0 20px ${t.a}77`:"none",animation:pop?"pop .25s ease":"none",minHeight:92,gap:3}}>
-                {cnt>0&&<div style={{position:"absolute",top:5,right:7,background:"#00000077",color:"#fff",borderRadius:20,padding:"0 5px",fontSize:10,fontWeight:900,lineHeight:1.6}} key={cnt}>{cnt>1?`×${cnt}`:""}</div>}
-                {isMy&&<button onClick={e=>{e.stopPropagation();setEditI(i);}} style={{position:"absolute",top:4,left:6,background:"transparent",border:"none",fontSize:12,cursor:"pointer",opacity:.35,color:hit?"#fff":t.sub,padding:0,lineHeight:1}}>✏️</button>}
-                <div style={{fontSize:18}}>{ev.emoji}</div>
-                <div style={{fontSize:ev.label?.length>8?10:ev.label?.length>5?12:14,fontWeight:900,color:hit?(glow?"#000":"#fff"):t.tx,lineHeight:1.1,padding:"0 4px"}}>{ev.label}</div>
-                <div style={{fontSize:9,color:hit?(glow?"#0009":"#ffffff88"):(ev.at?t.a:t.sub),fontWeight:700}}>
-                  {ev.at?`🍻 ${ev.slok}×`:`${ev.slok}${em}`}
+              <div key={i} {...lp} onClick={()=>tap(i)} className={`cell${isMy?"":" view"}`}
+                style={{background:bg,border:`2px solid ${glow?t.a:hit?t.a+"66":t.bd}`,borderRadius:16,boxShadow:glow?`0 0 22px ${t.a}88,inset 0 0 8px ${t.a}22`:"none",animation:pop?"pop .25s ease":"none",minHeight:100,gap:4,padding:"10px 6px"}}>
+                {/* Count badge */}
+                {cnt>1&&<div style={{position:"absolute",top:6,right:7,background:"#00000088",color:"#fff",borderRadius:20,padding:"1px 6px",fontSize:9,fontWeight:900,lineHeight:1.6}} key={cnt}>×{cnt}</div>}
+                {/* Edit button */}
+                {isMy&&<button onClick={e=>{e.stopPropagation();setEditI(i);}} style={{position:"absolute",top:5,left:7,background:"transparent",border:"none",fontSize:11,cursor:"pointer",opacity:.3,color:hit?"#fff":t.sub,padding:0,lineHeight:1}}>✏️</button>}
+                {/* Checkmark on bingo */}
+                {glow&&hit&&<div style={{position:"absolute",top:6,right:6,fontSize:13,opacity:.9}}>✅</div>}
+                <div style={{fontSize:22,lineHeight:1}}>{ev.emoji}</div>
+                <div style={{fontSize:ev.label?.length>8?10:ev.label?.length>5?12:13,fontWeight:900,color:hit?(glow?"#000":"#fff"):t.tx,lineHeight:1.15,padding:"0 4px",textAlign:"center"}}>{ev.label}</div>
+                <div style={{fontSize:10,color:hit?(glow?"#0009":"#ffffff99"):(ev.at?t.a:t.sub),fontWeight:700}}>
+                  {ev.at?`🍻 ${ev.slok}×`:`${ev.slok} slok`}
                 </div>
-                {cnt>1&&<div style={{fontSize:9,color:hit?(glow?"#0007":"#fff7"):t.sub}}>={cnt*ev.slok}{em}</div>}
                 {/* Category dot */}
-                <div style={{position:"absolute",bottom:5,right:7,width:6,height:6,borderRadius:"50%",background:CATS[ev.cat||"score"].c,opacity:.6}} />
+                <div style={{position:"absolute",bottom:6,right:7,width:6,height:6,borderRadius:"50%",background:CATS[ev.cat||"score"].c,opacity:.7}} />
               </div>
             );
           })}
         </div>
 
+        {/* Hint */}
+        <div style={{textAlign:"center",fontSize:11,color:t.sub,marginBottom:12,marginTop:4}}>Tik om af te vinken · houd ingedrukt om te wissen</div>
+
         {/* Rotate button */}
         {isMy&&<button onClick={rotate} className="np" style={{width:"100%",padding:"10px 0",background:"transparent",border:`1.5px solid ${t.bd}`,borderRadius:10,color:t.sub,fontWeight:700,fontSize:12,marginBottom:12}}>🔀 Nieuwe volgorde (zelfde vakjes)</button>}
 
         {/* Score counter */}
-        <div style={{background:t.card,border:`1px solid ${t.bd}`,borderRadius:14,padding:"14px 16px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{background:t.card,border:`1px solid ${t.bd}`,borderRadius:16,padding:"14px 16px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
-            <div style={{fontSize:10,color:t.sub,letterSpacing:2,marginBottom:2}}>{me.name||t.lbl} · {sl.toUpperCase()}</div>
-            <div style={{fontSize:40,fontWeight:900,color:t.a,lineHeight:1,animation:numAnim?"numPop .35s":""}} key={me.total_slok}>
-              {me.total_slok||0}<span style={{fontSize:28,marginLeft:4}}>{em}</span>
+            <div className="neon-lbl" style={{marginBottom:4,color:t.sub}}>{me.name||"JOUW"} · {sl.toUpperCase()}</div>
+            <div style={{fontSize:38,fontWeight:900,color:t.a,lineHeight:1}} key={me.total_slok}>
+              {me.total_slok||0}<span style={{fontSize:24,marginLeft:4}}>{em}</span>
             </div>
-            <div style={{fontSize:10,color:t.sub,marginTop:4}}>Iedereen: {totAll} {em}</div>
+            <div style={{fontSize:11,color:t.sub,marginTop:4}}>Iedereen: {totAll} {em}</div>
           </div>
-          <div style={{textAlign:"right",lineHeight:1.9,color:t.sub,fontSize:12}}>
+          <div style={{textAlign:"right",color:t.sub,fontSize:12,lineHeight:2}}>
             <div>{counts.reduce((a,b)=>a+b,0)}× getikt</div>
-            <div>{compL.length}× bingo-rij</div>
-            {sess.round>1&&<div style={{color:t.a,fontWeight:800}}>Ronde {sess.round}</div>}
+            <div style={{color:compL.length>0?t.a:"inherit"}}>{compL.length}× bingo-rij</div>
+            {sess.round>1&&<div style={{color:t.a,fontWeight:800}}>R{sess.round}</div>}
           </div>
         </div>
 
@@ -1096,6 +1157,33 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
             </div>
           </div>
         )}
+      </div>
+
+      {/* Fixed bottom player tabs */}
+      <div className="np" style={{position:"fixed",bottom:0,left:0,right:0,background:t.bg,borderTop:`1px solid ${t.bd}`,padding:"10px 14px 20px",zIndex:40}}>
+        <div style={{display:"flex",gap:6,overflowX:"auto",scrollbarWidth:"none",maxWidth:460,margin:"0 auto",paddingBottom:2}}>
+          {players.map(p=>{
+            const c=COLORS[p.color]||COLORS.rood;
+            const pL=LINES.filter(l=>l.every(i=>(p.counts||[])[i]>0)).length;
+            const mine=p.color===myCol;
+            const act=p.color===actCol;
+            const host=p.color===sess.host_color;
+            return(
+              <button key={p.color} onClick={()=>setActCol(p.color)}
+                style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"6px 10px",borderRadius:14,border:`2px solid ${act?c.a:c.bd}`,background:act?c.a+"22":"transparent",minWidth:62,position:"relative"}}>
+                <div style={{width:40,height:40,borderRadius:"50%",border:`2.5px solid ${c.a}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,background:act?c.a+"33":t.cell,position:"relative",boxShadow:act?`0 0 10px ${c.a}55`:"none"}}>
+                  {p.avatar||"🎯"}
+                  {mine&&<div style={{position:"absolute",top:-5,left:-5,background:c.a,color:"#000",borderRadius:999,padding:"1px 4px",fontSize:7,fontWeight:900,letterSpacing:.5}}>JIJ</div>}
+                  {host&&<div style={{position:"absolute",top:-6,right:-5,fontSize:9,pointerEvents:"none"}}>👑</div>}
+                  {pL>0&&<div style={{position:"absolute",bottom:-4,right:-4,background:c.a,color:"#000",borderRadius:999,width:14,height:14,fontSize:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,border:`2px solid ${t.bg}`}}>{pL}</div>}
+                </div>
+                <div style={{fontSize:10,color:act?c.a:t.sub,fontWeight:act?900:600,maxWidth:60,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
+                {!S.hideD&&(p.total_slok||0)>0&&<div style={{fontSize:9,color:c.a,fontWeight:700}}>{p.total_slok}{em}</div>}
+                {isH&&p.color!==myCol&&<button onClick={e=>{e.stopPropagation();if(window.confirm(`${p.name} verwijderen?`))onKick(p.color);}} style={{position:"absolute",top:-5,right:-5,background:"#f87171",border:"none",borderRadius:999,width:14,height:14,fontSize:7,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#000",cursor:"pointer",zIndex:2}}>✕</button>}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {showSe&&<SettingsM S={S} upS={upS} onClose={()=>setShowSe(false)} />}
@@ -1299,34 +1387,85 @@ function Winner({winData,onBack,S}){
     setSaved(true);
   }
 
+  const winner = sorted[0];
+  const winC = winner ? (COLORS[winner.color]||COLORS.rood) : COLORS.rood;
+  const winPL = winner ? LINES.filter(l=>l.every(ii=>(winner.counts||[])[ii]>0)).length : 0;
+
   return(
-    <div style={{minHeight:"100vh",background:"#0a0a0a",padding:"20px 16px 40px",maxWidth:460,margin:"0 auto"}}>
-      <div style={{textAlign:"center",marginBottom:28}}>
-        <div style={{fontSize:72,animation:"trophy .8s ease-out",display:"block",marginBottom:8}}>🏆</div>
-        <div style={{fontSize:30,fontWeight:900,color:"#facc15",letterSpacing:4}}>SPEL VOORBIJ</div>
-        <div style={{fontSize:13,color:"#666",marginTop:6}}>{sess.name} · {sess.round||1} {sess.round>1?"rondes":"ronde"}</div>
+    <div style={{minHeight:"100vh",background:"#0a0a0a",padding:"0 0 40px"}}>
+      {/* Hero header */}
+      <div style={{textAlign:"center",padding:"36px 20px 20px",background:"linear-gradient(180deg,#110000 0%,#0a0a0a 100%)"}}>
+        <div className="neon-lbl" style={{marginBottom:12}}>DE OCHE IS GESLOTEN</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginBottom:6}}>
+          <div style={{fontSize:42,animation:"trophy .8s ease-out"}}>🏆</div>
+          <div className="anto" style={{fontSize:"clamp(2.2rem,10vw,3.4rem)",color:"#e8380d",lineHeight:.9}}>BAAS VAN<br/>DE AVOND</div>
+        </div>
+        {winner&&<div style={{fontSize:13,color:"#666",marginTop:10}}>Meeste slokken uitgedeeld{winPL>0?` én ${winPL}× bingo`:""}</div>}
       </div>
 
-      {/* Eindstand */}
-      <div style={{background:"#111",borderRadius:16,padding:16,marginBottom:16,border:"1px solid #1e1e1e"}}>
-        <div style={{fontWeight:900,color:"#facc15",fontSize:13,letterSpacing:2,marginBottom:14}}>📊 EINDSTAND</div>
-        {sorted.map((p,i)=>{
-          const c=COLORS[p.color]||COLORS.rood;
-          const pL=LINES.filter(l=>l.every(ii=>(p.counts||[])[ii]>0)).length;
-          const medals=["🥇","🥈","🥉"];
-          return(
-            <div key={p.color} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid #1a1a1a"}}>
-              <div style={{fontSize:24,width:32,textAlign:"center"}}>{medals[i]||`${i+1}`}</div>
-              <div style={{fontSize:24}}>{p.avatar||"🎯"}</div>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:800,color:c.a,fontSize:15}}>{p.name||c.lbl}</div>
-                <div style={{fontSize:11,color:"#666",marginTop:2}}>{(p.achievements||[]).length} badges · {pL} bingo-rijen</div>
-              </div>
-              <div style={{fontSize:26,fontWeight:900,color:c.a}}>{p.total_slok||0}{em}</div>
+      <div style={{padding:"0 16px",maxWidth:460,margin:"0 auto"}}>
+        {/* Winner card */}
+        {winner&&(
+          <div style={{background:"#111",border:`2px solid ${winC.a}44`,borderRadius:20,padding:"24px 20px",marginBottom:20,textAlign:"center",boxShadow:`0 0 32px ${winC.a}22`}}>
+            <div style={{width:72,height:72,borderRadius:"50%",border:`3px solid ${winC.a}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36,background:winC.cell,margin:"0 auto 12px",boxShadow:`0 0 16px ${winC.a}44`}}>
+              {winner.avatar||"🎯"}
             </div>
-          );
-        })}
-      </div>
+            <div className="anto" style={{fontSize:28,letterSpacing:2,marginBottom:16}}>{(winner.name||winC.lbl).toUpperCase()}</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+              {[[(winner.total_slok||0),"UITGEDEELD"],[winPL,"BINGO'S"],[(winner.achievements||[]).length,"BADGES"]].map(([v,lbl])=>(
+                <div key={lbl} style={{background:winC.cell,borderRadius:12,padding:"12px 8px"}}>
+                  <div style={{fontSize:30,fontWeight:900,color:"#e8380d",lineHeight:1}}>{v}</div>
+                  <div className="neon-lbl" style={{marginTop:4}}>{lbl}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Podium */}
+        {sorted.length>=2&&(
+          <div className="podium-wrap" style={{marginBottom:24}}>
+            {/* 2nd */}
+            {sorted[1]&&(()=>{const p=sorted[1];const c=COLORS[p.color]||COLORS.rood;return(
+              <div className="podium-col">
+                <div style={{width:48,height:48,borderRadius:"50%",border:`2.5px solid ${c.a}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,background:c.cell}}>{p.avatar||"🎯"}</div>
+                <div style={{fontSize:11,color:c.a,fontWeight:700,textAlign:"center"}}>{p.name}</div>
+                <div style={{fontSize:10,color:"#555"}}>🍺 {p.total_slok||0}</div>
+                <div style={{background:"#1e1e1e",borderRadius:"10px 10px 0 0",height:64,width:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <span className="anto" style={{fontSize:28,color:"#888"}}>2</span>
+                </div>
+              </div>
+            );})()}
+            {/* 1st */}
+            {sorted[0]&&(()=>{const p=sorted[0];const c=COLORS[p.color]||COLORS.rood;return(
+              <div className="podium-col" style={{flex:1.2}}>
+                <div style={{width:58,height:58,borderRadius:"50%",border:`3px solid ${c.a}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,background:c.cell,boxShadow:`0 0 16px ${c.a}55`}}>{p.avatar||"🎯"}</div>
+                <div style={{fontSize:13,color:c.a,fontWeight:800,textAlign:"center"}}>{p.name}</div>
+                <div style={{fontSize:11,color:"#e8380d",fontWeight:700}}>🍺 {p.total_slok||0}</div>
+                <div style={{background:"#e8380d",borderRadius:"10px 10px 0 0",height:96,width:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <span className="anto" style={{fontSize:36,color:"#fff"}}>1</span>
+                </div>
+              </div>
+            );})()}
+            {/* 3rd */}
+            {sorted[2]&&(()=>{const p=sorted[2];const c=COLORS[p.color]||COLORS.rood;return(
+              <div className="podium-col">
+                <div style={{width:44,height:44,borderRadius:"50%",border:`2px solid ${c.a}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,background:c.cell}}>{p.avatar||"🎯"}</div>
+                <div style={{fontSize:10,color:c.a,fontWeight:700,textAlign:"center"}}>{p.name}</div>
+                <div style={{fontSize:9,color:"#555"}}>🍺 {p.total_slok||0}</div>
+                <div style={{background:"#1e1e1e",borderRadius:"10px 10px 0 0",height:44,width:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <span className="anto" style={{fontSize:24,color:"#555"}}>3</span>
+                </div>
+              </div>
+            );})()}
+          </div>
+        )}
+
+        {/* Buttons */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:24}}>
+          <button onClick={onBack} style={{padding:"14px 0",background:"transparent",border:"1.5px solid #2a2a2a",borderRadius:14,color:"#fff",fontWeight:900,fontSize:14,cursor:"pointer"}}>Nieuw spel</button>
+          <Btn onClick={onBack} color="#e8380d">Revanche →</Btn>
+        </div>
 
       {/* Achievements */}
       {sorted.some(p=>(p.achievements||[]).length>0)&&(
@@ -1386,6 +1525,7 @@ function Winner({winData,onBack,S}){
       )}
 
       <Btn onClick={onBack} color="#e8380d">← Terug naar lobby</Btn>
+      </div>
     </div>
   );
 }
