@@ -4,8 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0a0a0a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dart Bingo">
 <title>🎯 Dart Bingo</title>
+<link rel="manifest" id="pwa-manifest">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><text y='.9em' font-size='80'>🎯</text></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+<script>
+(function(){
+  const m={name:"Dart Bingo",short_name:"DartBingo",theme_color:"#0a0a0a",background_color:"#0a0a0a",display:"standalone",orientation:"portrait",start_url:"./",icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><text y='.9em' font-size='80'>🎯</text></svg>",sizes:"any",type:"image/svg+xml"}]};
+  try{const u=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:"application/json"}));document.getElementById("pwa-manifest").href=u;}catch(e){}
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -47,6 +59,12 @@ input:focus{border-color:#555!important}
 @keyframes ripple   {0%{transform:scale(0);opacity:.6}100%{transform:scale(2.5);opacity:0}}
 @keyframes liveBlip {0%,100%{opacity:1}50%{opacity:.3}}
 @keyframes tickerSlide{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes cardFlip  {0%{transform:perspective(600px) rotateY(0)}40%{transform:perspective(600px) rotateY(90deg);opacity:.2}60%{transform:perspective(600px) rotateY(-90deg);opacity:.2}100%{transform:perspective(600px) rotateY(0);opacity:1}}
+@keyframes rowFlash  {0%,100%{filter:brightness(1)}20%{filter:brightness(2.2) saturate(2)}50%{filter:brightness(1.6)}75%{filter:brightness(2) saturate(1.8)}}
+@keyframes podiumRise{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
+@keyframes playerDrop{from{opacity:0;transform:translateY(-24px)}to{opacity:1;transform:translateY(0)}}
+.card-flip{animation:cardFlip .55s ease-in-out}
+.row-flash{animation:rowFlash .7s ease-in-out}
 
 /* ── Skeleton ──────────────────────────────────── */
 .sk{background:linear-gradient(90deg,#181818 25%,#252525 50%,#181818 75%);background-size:400px 100%;animation:shimmer 1.3s infinite;border-radius:8px}
@@ -153,16 +171,23 @@ const CATS    = {score:{lbl:"Score",c:"#38bdf8"},finish:{lbl:"Finish",c:"#22c55e
 
 // ── Achievements ──────────────────────────────────────────────────────────────
 const ACHS = [
-  {id:"first_hit",   e:"👆",lbl:"Eerste Tik",   d:"Eerste vakje aangetikt"},
-  {id:"first_180",   e:"🎯",lbl:"180!",          d:"Eerste 180 gescoord"},
-  {id:"first_bingo", e:"🏆",lbl:"BINGO!",        d:"Eerste bingo-rij"},
-  {id:"double_bingo",e:"🎉",lbl:"Dubbel Bingo",  d:"2 bingo-rijen"},
-  {id:"full_card",   e:"💯",lbl:"Vol Kaart",     d:"Alle 9 vakjes aangetikt"},
-  {id:"nine_dart",   e:"🤯",lbl:"Perfect Game",  d:"9-darter geregistreerd"},
-  {id:"fish",        e:"🐟",lbl:"De Vis",        d:"170-finish geregistreerd"},
-  {id:"drink_10",    e:"🍺",lbl:"Slok Prins",    d:"10+ slokken"},
-  {id:"drink_20",    e:"🍻",lbl:"Slok Kampioen", d:"20+ slokken"},
-  {id:"bull_bull",   e:"🎯",lbl:"Bullseye Master",d:"BULL BULL aangetikt"},
+  {id:"first_hit",    e:"👆",lbl:"Eerste Tik",      d:"Eerste vakje aangetikt"},
+  {id:"first_180",    e:"🎯",lbl:"180!",             d:"Eerste 180 gescoord"},
+  {id:"first_bingo",  e:"🏆",lbl:"BINGO!",           d:"Eerste bingo-rij"},
+  {id:"double_bingo", e:"🎉",lbl:"Dubbel Bingo",     d:"2 bingo-rijen"},
+  {id:"triple_bingo", e:"🔱",lbl:"Triple Bingo",     d:"3 bingo-rijen"},
+  {id:"full_card",    e:"💯",lbl:"Vol Kaart",        d:"Alle 9 vakjes aangetikt"},
+  {id:"nine_dart",    e:"🤯",lbl:"Perfect Game",     d:"9-darter geregistreerd"},
+  {id:"fish",         e:"🐟",lbl:"De Vis",           d:"170-finish geregistreerd"},
+  {id:"drink_10",     e:"🍺",lbl:"Slok Prins",       d:"10+ slokken"},
+  {id:"drink_20",     e:"🍻",lbl:"Slok Kampioen",    d:"20+ slokken"},
+  {id:"drink_30",     e:"💀",lbl:"Slok Legende",     d:"30+ slokken"},
+  {id:"bull_bull",    e:"🎯",lbl:"Bullseye Master",  d:"BULL BULL aangetikt"},
+  {id:"diagonal_bingo",e:"↗️",lbl:"Diagonaal!",     d:"Bingo op een diagonaal"},
+  {id:"streak_180",   e:"🔥",lbl:"180-Streak",       d:"3× 180 in één spel"},
+  {id:"all_specials", e:"🌟",lbl:"Special Hunter",   d:"Alle 3 zeldzame vakjes aangetikt"},
+  {id:"speed_bingo",  e:"⚡",lbl:"Snelle Bingo",     d:"Bingo met ≤5 vakjes aangetikt"},
+  {id:"finisher",     e:"✅",lbl:"Finisher",         d:"3 finish-vakjes aangetikt"},
 ];
 
 // ── Settings ──────────────────────────────────────────────────────────────────
@@ -172,9 +197,26 @@ const loadS = ()=>{ try{const s=localStorage.getItem(SK);return s?{...DS,...JSON
 const saveS = s=>{ try{localStorage.setItem(SK,JSON.stringify(s));localStorage.setItem("db1",s.debug?"1":"0");}catch{} };
 const getVol= ()=>{ try{const s=JSON.parse(localStorage.getItem(SK)||"{}");return s.sound===false?0:(s.vol??0.7);}catch{return 0.7;} };
 
+// ── Session History (localStorage) ───────────────────────────────────────────
+const HIST_KEY="db_hist_v1";
+function loadHistory(){try{return JSON.parse(localStorage.getItem(HIST_KEY)||"[]");}catch{return[];}}
+function saveHistory(h){try{localStorage.setItem(HIST_KEY,JSON.stringify(h.slice(0,20)));}catch{}}
+function addToHistory(sess,players){
+  try{
+    const h=loadHistory();
+    const sorted=[...players].sort((a,b)=>(b.total_slok||0)-(a.total_slok||0));
+    h.unshift({
+      id:sess.id,name:sess.name||"Dart Avond",date:new Date().toISOString(),
+      mode:sess.game_mode||"slokken",round:sess.round||1,
+      players:sorted.map(p=>({name:p.name,color:p.color,avatar:p.avatar,slok:p.total_slok||0,bingos:LINES.filter(l=>l.every(i=>(p.counts||[])[i]>0)).length,achs:(p.achievements||[]).length}))
+    });
+    saveHistory(h);
+  }catch{}
+}
+
 // ── Sounds ────────────────────────────────────────────────────────────────────
 let _ac=null;
-const ac=()=>{ if(!_ac) try{_ac=new(window.AudioContext||window.webkitAudioContext)();}catch{} return _ac; };
+const ac=()=>{ if(!_ac) try{_ac=new(window.AudioContext||window.webkitAudioContext)();}catch{} if(_ac?.state==="suspended")_ac.resume().catch(()=>{}); return _ac; };
 function tone(f,d,v=0.15,t="sine"){
   const c=ac();if(!c)return;const vol=getVol();if(!vol)return;
   try{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);
@@ -210,9 +252,10 @@ function useLongPress(cb,ms=600){
   return{onMouseDown:start,onMouseUp:stop,onMouseLeave:stop,onTouchStart:start,onTouchEnd:stop,onTouchCancel:stop};
 }
 
-function confetti(n=60){
+function confetti(n=60,accentColor=null){
   const root=document.getElementById("cf");if(!root)return;
-  const cols=["#e8380d","#22c55e","#38bdf8","#facc15","#a78bfa","#f97316","#fff"];
+  const base=["#e8380d","#22c55e","#38bdf8","#facc15","#a78bfa","#f97316","#fff"];
+  const cols=accentColor?[accentColor,accentColor,"#fff",accentColor,...base]:base;
   for(let i=0;i<n;i++){
     const el=document.createElement("div");el.className="cf";
     Object.assign(el.style,{left:Math.random()*100+"vw",top:"-12px",
@@ -224,9 +267,15 @@ function confetti(n=60){
   }
 }
 
-function shareUrl(id){return `${location.origin}${location.pathname}?join=${id}`;}
+function shareUrl(id,name,col){
+  let u=`${location.origin}${location.pathname}?join=${id}`;
+  if(name)u+=`&name=${encodeURIComponent(name)}`;
+  if(col)u+=`&col=${encodeURIComponent(col)}`;
+  return u;
+}
 
-function checkAch(player,ev,newC,newBL,newSlok){
+const DIAG_LINES=[[0,4,8],[2,4,6]];
+function checkAch(player,ev,newC,newBL,newSlok,card){
   const ex=player.achievements||[],earn=[];
   const add=id=>{if(!ex.includes(id)&&!earn.includes(id))earn.push(id);};
   if(newC.reduce((a,b)=>a+b,0)===1) add("first_hit");
@@ -234,11 +283,29 @@ function checkAch(player,ev,newC,newBL,newSlok){
   if(ev.label==="9 DART")      add("nine_dart");
   if(ev.label==="170 FINISH")  add("fish");
   if(ev.label==="BULL BULL")   add("bull_bull");
-  if(newBL.length>0&&!ex.includes("first_bingo"))  add("first_bingo");
-  if(newBL.length>=2&&!ex.includes("double_bingo")) add("double_bingo");
-  if(newC.every(c=>c>0)&&!ex.includes("full_card")) add("full_card");
+  if(newBL.length>0&&!ex.includes("first_bingo"))   add("first_bingo");
+  if(newBL.length>=2&&!ex.includes("double_bingo"))  add("double_bingo");
+  if(newBL.length>=3&&!ex.includes("triple_bingo"))  add("triple_bingo");
+  if(newC.every(c=>c>0)&&!ex.includes("full_card"))  add("full_card");
   if(newSlok>=10&&!ex.includes("drink_10")) add("drink_10");
   if(newSlok>=20&&!ex.includes("drink_20")) add("drink_20");
+  if(newSlok>=30&&!ex.includes("drink_30")) add("drink_30");
+  // Diagonaal bingo
+  if(!ex.includes("diagonal_bingo")&&DIAG_LINES.some(l=>l.every(i=>newC[i]>0))) add("diagonal_bingo");
+  // 180-streak: 3+ hits op het 180-vakje
+  if(ev.label==="180"&&(newC[card?.findIndex(e=>e.label==="180")]||0)>=3) add("streak_180");
+  // Speed bingo: bingo met ≤5 vakjes aangetikt
+  if(newBL.length>0&&!ex.includes("speed_bingo")&&newC.filter(c=>c>0).length<=5) add("speed_bingo");
+  // Alle zeldzame vakjes
+  if(!ex.includes("all_specials")&&card&&card.filter(e=>e.at).every((_,ii)=>{const cardIdx=card.findIndex((e,j)=>e.at&&[...card].filter(x=>x.at).indexOf(e)===ii);return newC[cardIdx]>0;})) {
+    const rareCells=card.map((e,i)=>({e,i})).filter(({e})=>e.at);
+    if(rareCells.every(({i})=>newC[i]>0)) add("all_specials");
+  }
+  // Finisher: 3 finish-vakjes
+  if(!ex.includes("finisher")&&card){
+    const finCount=card.map((e,i)=>({e,i})).filter(({e})=>e.cat==="finish"&&newC[i]>0).length;
+    if(finCount>=3) add("finisher");
+  }
   return earn;
 }
 
@@ -255,6 +322,7 @@ function App(){
   const [chat,   setChat]   = useState([]);
   const [achT,   setAchT]   = useState(null);
   const [winData,setWinData]= useState(null);
+  const [rematch,setRematch]= useState(null);
 
   const chRef = useRef(null);
   const SR    = useRef(S);
@@ -267,6 +335,9 @@ function App(){
     const p=new URLSearchParams(location.search);
     const j=p.get("join");
     if(j) setCode(j.trim());
+    // Pre-fill name/col from share link
+    const pn=p.get("name");const pc=p.get("col");
+    if(pn||pc){sessionStorage.setItem("db_prefill",JSON.stringify({name:pn||"",col:pc||""}));}
     const saved=sessionStorage.getItem("db_v3");
     if(saved){
       try{
@@ -285,7 +356,7 @@ function App(){
 
   // Realtime
   useEffect(()=>{
-    if(!sess||scr!=="play"){
+    if(!sess||!(scr==="play"||scr==="wait")){
       if(chRef.current){sb.removeChannel(chRef.current);chRef.current=null;}
       return;
     }
@@ -303,15 +374,21 @@ function App(){
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"bingo_chat",filter:`session_id=eq.${sess.id}`},({new:n})=>setChat(c=>[...c,n]))
       .on("postgres_changes",{event:"UPDATE",schema:"public",table:"bingo_sessions",filter:`id=eq.${sess.id}`},({new:ns})=>{
         setSess(ns);
+        if(ns.status==="active"){
+          setScr(s=>s==="wait"?"play":s);
+        }
         if(ns.status==="finished"){
+          addToHistory(ns,players);
           setWinData({players:[...players],sess:ns});
-          setScr("winner"); sFanfare(); confetti(100);
+          setScr("winner"); sFanfare();
+          const wp=[...players].sort((a,b)=>(b.total_slok||0)-(a.total_slok||0))[0];
+          confetti(100,wp?COLORS[wp.color]?.a:null);
         }
       })
       .subscribe(s=>dbg("rt",s));
     chRef.current=ch;
     return()=>{sb.removeChannel(ch);chRef.current=null;};
-  },[sess?.id,scr]);
+  },[sess?.id,scr,myCol]);
 
   async function createSess(name,pool,pwd,gm){
     setLoading(true);setError("");
@@ -321,6 +398,19 @@ function App(){
       if(e)throw e;
       setSess(data);setLoading(false);setScr("setup");
     }catch(e){err("create",e);setError("Kon sessie niet aanmaken: "+(e.message||e));setLoading(false);}
+  }
+
+  async function watchSess(code){
+    setLoading(true);setError("");
+    try{
+      const{data:s,error:e1}=await sb.from("bingo_sessions").select().eq("id",code.trim().toLowerCase()).single();
+      if(e1||!s)throw new Error("Sessie niet gevonden.");
+      if(s.status==="finished")throw new Error("Deze sessie is al afgelopen.");
+      setSess(s);setMyCol("spectator");
+      const{data:r}=await sb.from("bingo_players").select().eq("session_id",s.id);
+      if(r)setPlayers(r);
+      setLoading(false);setScr("play");
+    }catch(e){err("watch",e);setError(e.message);setLoading(false);}
   }
 
   async function joinSess(code,col,name,pwd,avatar){
@@ -345,7 +435,9 @@ function App(){
       const{data:r}=await sb.from("bingo_players").select().eq("session_id",s.id);
       if(r)setPlayers(r);
       sessionStorage.setItem("db_v3",JSON.stringify({sid:s.id,col}));
-      setLoading(false);setScr("play");
+      setLoading(false);
+      // Ga naar wachtkamer als spel nog niet gestart (geen host_color of status niet "active")
+      setScr((!s.host_color||s.status==="waiting")?"wait":"play");
     }catch(e){err("join",e);setError(e.message);setLoading(false);}
   }
 
@@ -367,7 +459,7 @@ function App(){
           total_slok:0,bingo_lines:[],log:[],version:0,achievements:[],round_data:[]
         },{onConflict:"id"});
       }
-      await sb.from("bingo_sessions").update({host_color:pcs[0].color}).eq("id",sess.id);
+      await sb.from("bingo_sessions").update({host_color:pcs[0].color,status:"active"}).eq("id",sess.id);
       const{data:r}=await sb.from("bingo_players").select().eq("session_id",sess.id);
       if(r)setPlayers(r);
       setMyCol(pcs[0].color);
@@ -389,17 +481,31 @@ function App(){
     const nr=(sess.round||1)+1;
     for(const p of players){
       const rd={round:sess.round||1,counts:p.counts,slok:p.total_slok,bingo_lines:p.bingo_lines};
-      await sb.from("bingo_players").update({counts:Array(9).fill(0),bingo_lines:[],round_data:[...(p.round_data||[]),rd],version:(p.version||0)+1}).eq("id",p.id);
+      await sb.from("bingo_players").update({counts:Array(9).fill(0),counts2:Array(9).fill(0),bingo_lines:[],round_data:[...(p.round_data||[]),rd],version:(p.version||0)+1}).eq("id",p.id);
     }
     await sb.from("bingo_sessions").update({round:nr}).eq("id",sess.id);
     setSess(s=>({...s,round:nr}));
-    setPlayers(prev=>prev.map(p=>({...p,counts:Array(9).fill(0),bingo_lines:[]})));
+    setPlayers(prev=>prev.map(p=>({...p,counts:Array(9).fill(0),counts2:Array(9).fill(0),bingo_lines:[]})));
+  }
+
+  async function startBreak(mins){
+    const until=new Date(Date.now()+mins*60000).toISOString();
+    await sb.from("bingo_sessions").update({break_until:until}).eq("id",sess.id);
+    setSess(s=>({...s,break_until:until}));
+  }
+
+  async function endBreak(){
+    await sb.from("bingo_sessions").update({break_until:null}).eq("id",sess.id);
+    setSess(s=>({...s,break_until:null}));
   }
 
   async function endGame(){
     await sb.from("bingo_sessions").update({status:"finished"}).eq("id",sess.id);
+    addToHistory(sess,players);
     setWinData({players:[...players],sess:{...sess}});
-    setScr("winner"); sFanfare(); confetti(100);
+    setScr("winner"); sFanfare();
+    const wp=[...players].sort((a,b)=>(b.total_slok||0)-(a.total_slok||0))[0];
+    confetti(100,wp?COLORS[wp.color]?.a:null);
   }
 
   async function sendChat(msg){
@@ -412,7 +518,42 @@ function App(){
   function leave(){
     if(chRef.current){sb.removeChannel(chRef.current);chRef.current=null;}
     sessionStorage.removeItem("db_v3");
-    setScr("lobby");setSess(null);setPlayers([]);setMyCol(null);setError("");setChat([]);
+    setScr("lobby");setSess(null);setPlayers([]);setMyCol(null);setError("");setChat([]);setRematch(null);
+  }
+
+  async function doRematch(pcs){
+    setLoading(true);setError("");
+    try{
+      const id=uid();
+      const{data:ns,error:e}=await sb.from("bingo_sessions").insert({
+        id,name:winData?.sess?.name||"Revanche",
+        event_pool:winData?.sess?.event_pool||EVENTS,
+        password:"",game_mode:S.gm||"slokken"
+      }).select().single();
+      if(e)throw e;
+      setSess(ns);
+      await startGame_inner(ns,pcs);
+    }catch(e){err("rematch",e);setError(e.message);setLoading(false);}
+  }
+
+  async function startGame_inner(sessObj,pcs){
+    const pool=sessObj.event_pool;
+    for(const pc of pcs){
+      const card=makeCard(pool,pc.color,sessObj.id);
+      const card2=makeCard(pool,pc.color,sessObj.id,"_b");
+      await sb.from("bingo_players").upsert({
+        id:uid(),session_id:sessObj.id,name:pc.name,color:pc.color,
+        avatar:pc.avatar||"🎯",team:pc.team||null,card,card2,
+        counts:Array(9).fill(0),counts2:Array(9).fill(0),
+        total_slok:0,bingo_lines:[],log:[],version:0,achievements:[],round_data:[]
+      },{onConflict:"id"});
+    }
+    await sb.from("bingo_sessions").update({host_color:pcs[0].color,status:"active"}).eq("id",sessObj.id);
+    const{data:r}=await sb.from("bingo_players").select().eq("session_id",sessObj.id);
+    if(r)setPlayers(r);
+    setMyCol(pcs[0].color);
+    sessionStorage.setItem("db_v3",JSON.stringify({sid:sessObj.id,col:pcs[0].color}));
+    setLoading(false);setScr("play");
   }
 
   if(loading) return <Skel />;
@@ -426,13 +567,103 @@ function App(){
           <div style={{fontSize:11,color:"#888",marginTop:1}}>{achT.d}</div>
         </div>
       )}
-      {scr==="lobby" &&<Lobby  onNew={createSess} onJoin={joinSess} code={code} setCode={setCode} error={error} S={S} />}
+      {scr==="lobby" &&<Lobby  onNew={createSess} onJoin={joinSess} onWatch={watchSess} code={code} setCode={setCode} error={error} S={S} />}
       {scr==="setup" &&<Setup  sess={sess} onStart={startGame} onPool={upPool} onBack={()=>setScr("lobby")} error={error} S={S} />}
+      {scr==="wait"  &&<WaitRoom sess={sess} players={players} myCol={myCol} onLeave={leave} />}
       {scr==="play"  &&<Play   sess={sess} players={players} myCol={myCol} setPlayers={setPlayers}
                           onBack={leave} S={S} upS={upS} chat={chat} onChat={sendChat}
-                          onKick={kick} onNextRound={nextRound} onEnd={endGame} onAch={showAch} />}
-      {scr==="winner"&&<Winner winData={winData} onBack={leave} S={S} />}
+                          onKick={kick} onNextRound={nextRound} onEnd={endGame} onAch={showAch}
+                          onBreak={startBreak} onBreakEnd={endBreak} />}
+      {scr==="winner"&&<Winner winData={winData} onBack={leave} onRematch={doRematch} S={S} />}
     </>
+  );
+}
+
+// ── Wait Room ─────────────────────────────────────────────────────────────────
+function WaitRoom({sess,players,myCol,onLeave}){
+  const me=players.find(p=>p.color===myCol);
+  const t=COLORS[myCol]||COLORS.rood;
+  const [dots,setDots]=useState(".");
+  useEffect(()=>{const iv=setInterval(()=>setDots(d=>d.length>=3?".":d+"."),600);return()=>clearInterval(iv);},[]);
+  return(
+    <div style={{minHeight:"100vh",background:"#0a0a0a",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 20px",gap:20}}>
+      <div style={{width:70,height:70,borderRadius:"50%",border:`3px solid ${t.a}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:34,background:t.cell,boxShadow:`0 0 24px ${t.a}44`}}>
+        {me?.avatar||"🎯"}
+      </div>
+      <div style={{textAlign:"center"}}>
+        <div className="anto" style={{fontSize:"clamp(1.8rem,8vw,2.8rem)",color:"#fff",lineHeight:.95,marginBottom:8}}>WACHTEN OP<br/><span style={{color:t.a}}>HOST</span></div>
+        <div style={{fontSize:13,color:"#555",marginTop:4}}>De host is de kaarten aan het instellen{dots}</div>
+      </div>
+      <div style={{background:"#111",border:"1px solid #1e1e1e",borderRadius:16,padding:"16px 20px",width:"100%",maxWidth:360}}>
+        <div className="neon-lbl" style={{marginBottom:10}}>IN DE WACHTKAMER ({players.length})</div>
+        {players.map(p=>{
+          const c=COLORS[p.color]||COLORS.rood;
+          return(
+            <div key={p.color} className="p-row" style={{animation:"playerDrop .4s ease-out both"}}>
+              <div className="p-av" style={{borderColor:c.a,background:c.cell}}>{p.avatar||"🎯"}</div>
+              <div style={{flex:1,fontWeight:800,color:p.color===myCol?c.a:"#fff"}}>{p.name||p.color}{p.color===myCol?" (jij)":""}</div>
+              <span className="pill-ready">● klaar</span>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{background:"#111",border:"1px solid #222",borderRadius:12,padding:"12px 18px",textAlign:"center"}}>
+        <div className="neon-lbl" style={{marginBottom:4}}>GAME CODE</div>
+        <div className="game-code-big">{sess.id}</div>
+      </div>
+      <button onClick={onLeave} style={{padding:"10px 24px",background:"transparent",border:"1.5px solid #2a2a2a",borderRadius:10,color:"#555",fontWeight:800,fontSize:13,cursor:"pointer"}}>← Verlaten</button>
+    </div>
+  );
+}
+
+// ── History Panel ─────────────────────────────────────────────────────────────
+function HistoryPanel({onJoin,setCode}){
+  const [hist,setHist]=useState(()=>loadHistory());
+  const [open,setOpen]=useState(null);
+  if(!hist.length)return null;
+  const fmt=d=>{try{const dt=new Date(d);return dt.toLocaleDateString("nl-NL",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});}catch{return"";} };
+  return(
+    <div style={{marginTop:20}}>
+      <div className="neon-lbl" style={{marginBottom:10}}>RECENTE SESSIES</div>
+      {hist.map((h,idx)=>{
+        const win=h.players?.[0];
+        const wc=win?COLORS[win.color]||COLORS.rood:COLORS.rood;
+        const isOpen=open===idx;
+        return(
+          <div key={h.id} style={{background:"#111",border:"1px solid #1e1e1e",borderRadius:14,marginBottom:8,overflow:"hidden"}}>
+            <button onClick={()=>setOpen(isOpen?null:idx)} style={{width:"100%",background:"none",border:"none",padding:"12px 14px",display:"flex",alignItems:"center",gap:10,cursor:"pointer",textAlign:"left"}}>
+              <span style={{fontSize:18}}>{win?.avatar||"🎯"}</span>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:13,fontWeight:800,color:"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{h.name}</div>
+                <div style={{fontSize:10,color:"#555"}}>{fmt(h.date)} · {h.players?.length||0} spelers · R{h.round}</div>
+              </div>
+              <div style={{textAlign:"right",flexShrink:0}}>
+                <div style={{fontSize:12,fontWeight:800,color:wc.a}}>{win?.name}</div>
+                <div style={{fontSize:10,color:"#666"}}>{win?.slok||0} {h.mode==="punten"?"🏆":"🍺"}</div>
+              </div>
+              <span style={{color:"#444",fontSize:14,marginLeft:4}}>{isOpen?"▲":"▼"}</span>
+            </button>
+            {isOpen&&(
+              <div style={{borderTop:"1px solid #1a1a1a",padding:"10px 14px"}}>
+                {h.players?.map((p,i)=>{const c=COLORS[p.color]||COLORS.rood;return(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"4px 0",fontSize:12}}>
+                    <span style={{fontSize:14}}>{p.avatar}</span>
+                    <span style={{color:c.a,fontWeight:700,minWidth:80}}>{p.name}</span>
+                    <span style={{color:"#666",flex:1}}>{p.slok} {h.mode==="punten"?"🏆":"🍺"} · 🏆{p.bingos} · 🏅{p.achs}</span>
+                  </div>
+                );}) }
+                <div style={{display:"flex",gap:8,marginTop:10}}>
+                  <button onClick={()=>{setCode(h.id);}} style={{flex:1,padding:"8px 0",background:"#e8380d22",border:"1.5px solid #e8380d55",borderRadius:9,color:"#e8380d",fontSize:12,fontWeight:800,cursor:"pointer"}}>
+                    🔗 Code kopiëren
+                  </button>
+                  <button onClick={()=>setHist(hh=>{const n=hh.filter((_,ii)=>ii!==idx);saveHistory(n);return n;})} style={{padding:"8px 12px",background:"transparent",border:"1.5px solid #2a2a2a",borderRadius:9,color:"#555",fontSize:12,cursor:"pointer"}}>🗑️</button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -450,13 +681,14 @@ function Skel(){
 }
 
 // ── Lobby ─────────────────────────────────────────────────────────────────────
-function Lobby({onNew,onJoin,code,setCode,error,S}){
+function Lobby({onNew,onJoin,onWatch,code,setCode,error,S}){
+  const prefill=(()=>{try{const s=sessionStorage.getItem("db_prefill");return s?JSON.parse(s):{};}catch{return{};}})();
   const [tab,   setTab]  = useState(code?"join":"new");
   const [name,  setName] = useState("Dart Avond");
   const [pwd,   setPwd]  = useState("");
   const [gm,    setGm]   = useState(S.gm||"slokken");
-  const [jName, setJName]= useState("");
-  const [jCol,  setJCol] = useState("rood");
+  const [jName, setJName]= useState(prefill.name||"");
+  const [jCol,  setJCol] = useState(prefill.col&&COLORS[prefill.col]?prefill.col:"rood");
   const [jAv,   setJAv]  = useState("🎯");
   const [jPwd,  setJPwd] = useState("");
   const [busy,  setBusy] = useState(false);
@@ -464,6 +696,7 @@ function Lobby({onNew,onJoin,code,setCode,error,S}){
 
   async function doNew(){ setBusy(true); await onNew(name||"Dart Avond",EVENTS,pwd,gm); setBusy(false); }
   async function doJoin(){ setBusy(true); await onJoin(code,jCol,jName||"Speler",jPwd,jAv); setBusy(false); }
+  async function doWatch(){ setBusy(true); await onWatch(code); setBusy(false); }
 
   const inp = {className:"inp",style:{marginBottom:12}};
 
@@ -502,10 +735,10 @@ function Lobby({onNew,onJoin,code,setCode,error,S}){
         </div>
 
         {/* Tab switcher */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",background:"#111",borderRadius:12,padding:4,marginBottom:20,border:"1px solid #1e1e1e"}}>
-          {["new","join"].map(t=>(
-            <button key={t} onClick={()=>setTab(t)} style={{padding:"10px 0",borderRadius:9,background:tab===t?"#e8380d":"transparent",color:tab===t?"#fff":"#555",border:"none",fontWeight:900,fontSize:13,letterSpacing:1,transition:"all .15s"}}>
-              {t==="new"?"🆕 NIEUW":"🔗 JOIN"}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",background:"#111",borderRadius:12,padding:4,marginBottom:20,border:"1px solid #1e1e1e"}}>
+          {[["new","🆕 NIEUW"],["join","🔗 JOIN"],["watch","👁️ KIJK"]].map(([t,lbl])=>(
+            <button key={t} onClick={()=>setTab(t)} style={{padding:"10px 0",borderRadius:9,background:tab===t?"#e8380d":"transparent",color:tab===t?"#fff":"#555",border:"none",fontWeight:900,fontSize:12,letterSpacing:.5,transition:"all .15s"}}>
+              {lbl}
             </button>
           ))}
         </div>
@@ -572,7 +805,20 @@ function Lobby({onNew,onJoin,code,setCode,error,S}){
             </div>
           </>
         )}
+        {tab==="watch"&&(
+          <div style={{background:"#111",borderRadius:16,padding:"20px 18px",border:"1px solid #1e1e1e"}}>
+            <div style={{textAlign:"center",marginBottom:20}}>
+              <div style={{fontSize:38,marginBottom:8}}>👁️</div>
+              <div style={{fontWeight:900,fontSize:16,marginBottom:4}}>Meekijken zonder te spelen</div>
+              <div style={{fontSize:12,color:"#666",lineHeight:1.6}}>Je ziet alle kaarten live maar tikt zelf niets aan. Geen speler-record aangemaakt.</div>
+            </div>
+            <div className="neon-lbl" style={{marginBottom:8}}>SESSIE CODE</div>
+            <input value={code} onChange={e=>setCode(e.target.value.trim().toLowerCase())} placeholder="bijv. abc12xyz" style={{display:"block",width:"100%",background:"#1a1a1a",border:"1.5px solid #2a2a2a",borderRadius:10,padding:"12px 14px",color:"#facc15",fontSize:20,fontWeight:900,letterSpacing:4,marginBottom:20,textTransform:"lowercase"}} />
+            <Btn onClick={doWatch} loading={busy} color="#38bdf8">👁️ Meekijken →</Btn>
+          </div>
+        )}
         {error&&<div style={{color:"#f87171",fontSize:13,marginTop:12,background:"#1a0808",borderRadius:8,padding:"10px 14px",animation:"fadeUp .2s"}}>⚠️ {error}</div>}
+        <HistoryPanel setCode={setCode} />
       </div>
     </div>
   );
@@ -798,7 +1044,7 @@ function EvForm({ev,onChange,onSave,onCancel,isNew}){
 }
 
 // ── Play Screen ───────────────────────────────────────────────────────────────
-function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onNextRound,onEnd,onAch}){
+function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onNextRound,onEnd,onAch,onBreak,onBreakEnd}){
   const [actCol,  setActCol]  = useState(myCol);
   const [pulse,   setPulse]   = useState(null);
   const [showR,   setShowR]   = useState(false);
@@ -810,18 +1056,33 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
   const [editI,   setEditI]   = useState(null);
   const [saveSt,  setSaveSt]  = useState("");
   const [bAlert,  setBAlert]  = useState(null);
-  const [actCard, setActCard] = useState(0);
-  const [numAnim, setNumAnim] = useState(false);
+  const [actCard,   setActCard]   = useState(0);
+  const [numAnim,   setNumAnim]   = useState(false);
+  const [cardFlipA, setCardFlipA] = useState(false);
+  const [flashRows, setFlashRows] = useState([]);
+  const [hostAdj,   setHostAdj]   = useState(false);
+  const [adjVal,    setAdjVal]    = useState("");
   const prevBL  = useRef({});
   const saveRef = useRef(null);
   const nameRef = useRef(null); // for debounced name save
 
+  const isSpectator = myCol==="spectator";
   const t    = COLORS[actCol]||COLORS.rood;
   const me   = players.find(p=>p.color===actCol);
-  const isMy = actCol===myCol;
-  const isH  = sess.host_color===myCol;
+  const isMy = actCol===myCol&&!isSpectator;
+  const isH  = sess.host_color===myCol&&!isSpectator;
   const sl   = S.gm==="punten"?"punten":"slokken";
   const em   = S.gm==="punten"?"🏆":"🍺";
+
+  // WakeLock: scherm wakker houden
+  useEffect(()=>{
+    let wl=null;
+    const req=async()=>{try{if("wakeLock" in navigator){wl=await navigator.wakeLock.request("screen");}}catch{}};
+    req();
+    const onVis=()=>{if(document.visibilityState==="visible")req();};
+    document.addEventListener("visibilitychange",onVis);
+    return()=>{wl?.release().catch(()=>{});document.removeEventListener("visibilitychange",onVis);};
+  },[]);
 
   // Debounced save (stable ref)
   useEffect(()=>{
@@ -855,11 +1116,18 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
     });
   },[players]);
 
-  if(!me) return(
+  if(!me&&!isSpectator) return(
     <div style={{minHeight:"100vh",background:"#0a0a0a",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12}}>
       <div style={{color:"#888"}}>Speler niet gevonden</div>
       <button onClick={onBack} style={{padding:"10px 20px",background:"#e8380d",border:"none",borderRadius:10,color:"#fff",fontWeight:800,cursor:"pointer"}}>← Terug</button>
     </div>
+  );
+  // Spectator: begin bij eerste speler
+  if(isSpectator&&!me&&players.length>0){
+    setActCol(players[0].color);return null;
+  }
+  if(isSpectator&&players.length===0)return(
+    <div style={{minHeight:"100vh",background:"#0a0a0a",display:"flex",alignItems:"center",justifyContent:"center",color:"#555"}}>Nog geen spelers…</div>
   );
 
   const card   = actCard===0?(me.card||[]):(me.card2||me.card||[]);
@@ -890,6 +1158,7 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
       newLog.unshift({msg:`🎉 BINGO-RIJ! → ${rw}`,type:"bingo",id:Date.now()+1});
       BL=[...prevBL2,...newLns];
       sBingo();
+      setFlashRows(newLns.flat());setTimeout(()=>setFlashRows([]),800);
       if(navigator.vibrate)navigator.vibrate([100,50,100,50,200]);
     }else{
       sClick(600+cnt*60);
@@ -904,7 +1173,7 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
       confetti(120);sFanfare();
     }
     // Achievements
-    const earned=checkAch(me,ev,nc,BL,newSlok);
+    const earned=checkAch(me,ev,nc,BL,newSlok,card);
     const newAchs=[...(me.achievements||[]),...earned];
     earned.forEach((id,idx)=>{const a=ACHS.find(x=>x.id===id);if(a)setTimeout(()=>onAch(a),idx*700);});
     const ver=(me.version||0)+1;
@@ -920,11 +1189,32 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
     const ev=card[i];if(!ev||counts[i]===0)return;
     const nc=counts.map((c,ii)=>ii===i?Math.max(0,c-1):c);
     const newSlok=Math.max(0,(me.total_slok||0)-(ev.slok*(S.scale||1)));
+    const newBL=LINES.filter(l=>l.every(i2=>nc[i2]>0));
     const ver=(me.version||0)+1;
     const ck=actCard===0?"counts":"counts2";
-    setPlayers(ps=>ps.map(p=>p.color===actCol?{...p,[ck]:nc,total_slok:newSlok,version:ver}:p));
+    setPlayers(ps=>ps.map(p=>p.color===actCol?{...p,[ck]:nc,total_slok:newSlok,bingo_lines:newBL,version:ver}:p));
     sUndo();
+    saveRef.current(sess.id,actCol,{[ck]:nc,total_slok:newSlok,bingo_lines:newBL,version:ver});
+  }
+
+  async function hostTap(i){
+    if(!isH||isMy)return;
+    const ev=card[i];if(!ev)return;
+    const nc=counts.map((c,ii)=>ii===i?c+1:c);
+    const scaled=ev.slok*(S.scale||1);
+    const newSlok=(me.total_slok||0)+scaled;
+    const ck=actCard===0?"counts":"counts2";
+    const ver=(me.version||0)+1;
+    setPlayers(ps=>ps.map(p=>p.color===actCol?{...p,[ck]:nc,total_slok:newSlok,version:ver}:p));
     saveRef.current(sess.id,actCol,{[ck]:nc,total_slok:newSlok,version:ver});
+  }
+
+  async function hostAdjScore(delta){
+    const newSlok=Math.max(0,(me.total_slok||0)+delta);
+    const ver=(me.version||0)+1;
+    setPlayers(ps=>ps.map(p=>p.color===actCol?{...p,total_slok:newSlok,version:ver}:p));
+    saveRef.current(sess.id,actCol,{total_slok:newSlok,version:ver});
+    setAdjVal("");setHostAdj(false);
   }
 
   async function saveEdit(i,ev){
@@ -946,6 +1236,8 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
   }
 
   async function rotate(){
+    setCardFlipA(true);
+    setTimeout(()=>setCardFlipA(false),600);
     const seed=sess.id+"_ro_"+Date.now();
     const nc=makeCard(sess.event_pool,actCol,seed);
     const ck=actCard===0?"card":"card2";
@@ -967,13 +1259,13 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
             {me.avatar||"🎯"}
           </div>
           <div style={{flex:1,minWidth:0}}>
-            <div style={{fontWeight:900,fontSize:15,lineHeight:1.1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{me.name||"Speler"}</div>
-            <div style={{fontSize:10,color:t.sub,marginTop:1,letterSpacing:1}}>JOUW KAART{sess.round>1?` · R${sess.round}`:""}</div>
+            <div style={{fontWeight:900,fontSize:15,lineHeight:1.1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{isSpectator?"👁️ Toeschouwer":(me?.name||"Speler")}</div>
+            <div style={{fontSize:10,color:t.sub,marginTop:1,letterSpacing:1}}>{isSpectator?"ALLE KAARTEN":`JOUW KAART${sess.round>1?` · R${sess.round}`:""}`}</div>
           </div>
-          <div style={{textAlign:"right",flexShrink:0}}>
-            <div style={{fontSize:26,fontWeight:900,color:"#fff",lineHeight:1,animation:numAnim?"numPop .35s":""}} key={me.total_slok}>{me.total_slok||0}</div>
+          {!isSpectator&&<div style={{textAlign:"right",flexShrink:0}}>
+            <div style={{fontSize:26,fontWeight:900,color:"#fff",lineHeight:1,animation:numAnim?"numPop .35s":""}} key={me?.total_slok}>{me?.total_slok||0}</div>
             <div style={{fontSize:10,color:t.sub}}>SLOKKEN 🍺</div>
-          </div>
+          </div>}
           <div style={{display:"flex",gap:4,flexShrink:0}}>
             {S.chat&&<HBtn active={showCh} color={t.a} onClick={()=>setShowCh(x=>!x)}>💬</HBtn>}
             <HBtn active={showSt} color={t.a} onClick={()=>setShowSt(x=>!x)}>📊</HBtn>
@@ -997,10 +1289,10 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
           </div>
         </div>
 
-        {/* Activity ticker */}
+        {/* Activity ticker + emoji-reacties */}
         {(me.log||[]).length>0&&(
-          <div className="np" style={{background:"#0f0f0f",border:`1px solid ${t.bd}`,borderRadius:10,padding:"8px 14px",marginBottom:10,overflow:"hidden"}}>
-            <div style={{fontSize:12,color:"#666",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>
+          <div className="np" style={{background:"#0f0f0f",border:`1px solid ${t.bd}`,borderRadius:10,padding:"8px 14px",marginBottom:10}}>
+            <div style={{fontSize:12,color:"#666",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis",marginBottom:6}}>
               {(me.log||[]).slice(0,4).map((e,i)=>(
                 <span key={e.id||i}>
                   {i>0&&<span style={{color:"#333",margin:"0 10px"}}>·</span>}
@@ -1008,11 +1300,19 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
                 </span>
               ))}
             </div>
+            {S.chat&&<div style={{display:"flex",gap:4}}>
+              {["👍","😂","🔥","🎯","💀","🍺"].map(em=>(
+                <button key={em} onClick={()=>onChat(em)} style={{fontSize:15,background:"transparent",border:`1px solid ${t.bd}`,borderRadius:7,padding:"2px 6px",cursor:"pointer",lineHeight:1.4}}>{em}</button>
+              ))}
+            </div>}
           </div>
         )}
 
-        {/* View-only */}
-        {!isMy&&<div className="np" style={{background:"#181400",border:"1px solid #3a3400",borderRadius:10,padding:"8px 14px",marginBottom:10,fontSize:12,color:"#facc15",textAlign:"center"}}>
+        {/* View-only banner */}
+        {isSpectator&&<div className="np" style={{background:"#000e18",border:"1px solid #0e3a5a",borderRadius:10,padding:"8px 14px",marginBottom:10,fontSize:12,color:"#38bdf8",textAlign:"center"}}>
+          👁️ Toeschouwer — gebruik de tabs onderaan om spelers te wisselen
+        </div>}
+        {!isMy&&!isSpectator&&<div className="np" style={{background:"#181400",border:"1px solid #3a3400",borderRadius:10,padding:"8px 14px",marginBottom:10,fontSize:12,color:"#facc15",textAlign:"center"}}>
           👁️ Kaart van <b>{me?.name}</b> — jouw kaart ({COLORS[myCol]?.lbl}) is bewerkbaar
         </div>}
 
@@ -1044,6 +1344,9 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
         {showR&&<Rules t={t} sl={sl} em={em} isHost={isH} />}
         {showSt&&<Stats players={players} S={S} />}
         {showCh&&S.chat&&<Chat chat={chat} onSend={onChat} myCol={myCol} t={t} />}
+
+        {/* Break timer */}
+        <BreakTimer sess={sess} isHost={isH} t={t} onEnd={onBreakEnd} />
 
         {/* Bingo banner */}
         {bingo&&(
@@ -1079,19 +1382,19 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
         </div>}
 
         {/* GRID */}
-        <div className="grid pc" style={{marginBottom:12}}>
+        <div className={`grid pc${cardFlipA?" card-flip":""}`} style={{marginBottom:12}}>
           {card.map((ev,i)=>{
             if(editI===i&&isMy) return(
               <div key={i} style={{gridColumn:"1/-1"}}>
                 <EvForm ev={ev} onSave={e=>saveEdit(i,e)} onCancel={()=>setEditI(null)} />
               </div>
             );
-            const cnt=counts[i]||0,hit=cnt>0,glow=inBingo(i),pop=pulse===i;
+            const cnt=counts[i]||0,hit=cnt>0,glow=inBingo(i),pop=pulse===i,flash=flashRows.includes(i);
             const alpha=hit?Math.min(.5+Math.min(cnt,5)*.1,1):0;
             const bg=hit?(glow?t.a:t.a+Math.round(alpha*255).toString(16).padStart(2,"0")):t.cell;
             const lp=useLongPress(()=>undo(i));
             return(
-              <div key={i} {...lp} onClick={()=>tap(i)} className={`cell${isMy?"":" view"}`}
+              <div key={i} {...lp} onClick={()=>isMy?tap(i):(isH?hostTap(i):null)} className={`cell${(isMy||isH)&&!editI?"":" view"}${flash?" row-flash":""}`}
                 style={{background:bg,border:`2px solid ${glow?t.a:hit?t.a+"66":t.bd}`,borderRadius:16,boxShadow:glow?`0 0 22px ${t.a}88,inset 0 0 8px ${t.a}22`:"none",animation:pop?"pop .25s ease":"none",minHeight:100,gap:4,padding:"10px 6px"}}>
                 {/* Count badge */}
                 {cnt>1&&<div style={{position:"absolute",top:6,right:7,background:"#00000088",color:"#fff",borderRadius:20,padding:"1px 6px",fontSize:9,fontWeight:900,lineHeight:1.6}} key={cnt}>×{cnt}</div>}
@@ -1137,10 +1440,32 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
         {isH&&(
           <div className="np" style={{background:t.card,border:`1px solid ${t.a}33`,borderRadius:12,padding:"12px 14px",marginBottom:12}}>
             <div style={{fontSize:10,color:t.a,letterSpacing:2,fontWeight:900,marginBottom:8}}>👑 HOST</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
               <button onClick={onNextRound} style={{padding:"11px 8px",background:t.a+"22",border:`1.5px solid ${t.a}55`,borderRadius:10,color:t.a,fontWeight:900,fontSize:12,cursor:"pointer"}}>⏭ Ronde {(sess.round||1)+1}</button>
               <button onClick={()=>setConfEnd(true)} style={{padding:"11px 8px",background:"#f8717122",border:"1.5px solid #f8717155",borderRadius:10,color:"#f87171",fontWeight:900,fontSize:12,cursor:"pointer"}}>🏁 Beëindigen</button>
             </div>
+            <div style={{display:"flex",gap:6,marginBottom:!isMy?8:0}}>
+              <div style={{fontSize:10,color:"#555",display:"flex",alignItems:"center",marginRight:2}}>☕ Pauze:</div>
+              {[5,10,15].map(m=>(
+                <button key={m} onClick={()=>onBreak(m)} style={{flex:1,padding:"7px 0",background:"#0a1000",border:"1.5px solid #1a3a00",borderRadius:9,color:"#22c55e",fontWeight:900,fontSize:11,cursor:"pointer"}}>{m}m</button>
+              ))}
+            </div>
+            {!isMy&&(
+              <div style={{borderTop:`1px solid ${t.bd}`,paddingTop:8}}>
+                <div style={{fontSize:10,color:"#666",marginBottom:6}}>👁️ Beheer kaart van {me.name}</div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  <button onClick={()=>setHostAdj(x=>!x)} style={{padding:"7px 12px",background:hostAdj?t.a+"33":"#1a1a1a",border:`1.5px solid ${hostAdj?t.a:"#2a2a2a"}`,borderRadius:9,color:hostAdj?t.a:"#888",fontSize:12,fontWeight:800,cursor:"pointer"}}>±{S.gm==="punten"?"Punten":"Slokken"}</button>
+                  <div style={{fontSize:11,color:"#666",display:"flex",alignItems:"center"}}>Tik op vakje om namens {me.name} in te tikken</div>
+                </div>
+                {hostAdj&&(
+                  <div style={{display:"flex",gap:6,marginTop:8,alignItems:"center"}}>
+                    <input type="number" value={adjVal} onChange={e=>setAdjVal(e.target.value)} placeholder="bijv. 3 of -2" style={{flex:1,background:"#1a1a1a",border:"1.5px solid #2a2a2a",borderRadius:9,padding:"8px 12px",color:"#fff",fontSize:13,outline:"none"}} />
+                    <button onClick={()=>hostAdjScore(parseInt(adjVal)||0)} style={{padding:"8px 14px",background:"#22c55e22",border:"1.5px solid #22c55e55",borderRadius:9,color:"#22c55e",fontWeight:900,fontSize:12,cursor:"pointer"}}>✓</button>
+                    <button onClick={()=>setHostAdj(false)} style={{padding:"8px 10px",background:"transparent",border:"1.5px solid #2a2a2a",borderRadius:9,color:"#555",fontSize:12,cursor:"pointer"}}>✕</button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -1187,6 +1512,31 @@ function Play({sess,players,myCol,setPlayers,onBack,S,upS,chat,onChat,onKick,onN
       </div>
 
       {showSe&&<SettingsM S={S} upS={upS} onClose={()=>setShowSe(false)} />}
+    </div>
+  );
+}
+
+// ── Break Timer ───────────────────────────────────────────────────────────────
+function BreakTimer({sess,isHost,t,onEnd}){
+  const [secs,setSecs]=useState(0);
+  useEffect(()=>{
+    const calc=()=>{
+      if(!sess.break_until)return setSecs(0);
+      const rem=Math.max(0,Math.floor((new Date(sess.break_until)-Date.now())/1000));
+      setSecs(rem);
+    };
+    calc();
+    const iv=setInterval(calc,500);
+    return()=>clearInterval(iv);
+  },[sess.break_until]);
+  if(!sess.break_until||secs===0)return null;
+  const m=String(Math.floor(secs/60)).padStart(2,"0");
+  const s=String(secs%60).padStart(2,"0");
+  return(
+    <div style={{background:"#0a1000",border:`2px solid ${t.a}`,borderRadius:14,padding:"14px 18px",marginBottom:12,textAlign:"center",animation:"fadeUp .2s"}}>
+      <div style={{fontSize:11,color:t.a,letterSpacing:2,fontWeight:900,marginBottom:4}}>☕ PAUZE</div>
+      <div style={{fontSize:48,fontWeight:900,fontFamily:"monospace",color:"#fff",lineHeight:1}}>{m}:{s}</div>
+      {isHost&&<button onClick={onEnd} style={{marginTop:10,padding:"7px 20px",background:t.a+"22",border:`1.5px solid ${t.a}55`,borderRadius:9,color:t.a,fontWeight:900,fontSize:12,cursor:"pointer"}}>▶ Doorgaan</button>}
     </div>
   );
 }
@@ -1373,9 +1723,10 @@ function Tog({v,set}){
 }
 
 // ── Winner ────────────────────────────────────────────────────────────────────
-function Winner({winData,onBack,S}){
+function Winner({winData,onBack,onRematch,S}){
   const [rats,setRats]=useState({});
   const [saved,setSaved]=useState(false);
+  const [rmBusy,setRmBusy]=useState(false);
   const em=S.gm==="punten"?"🏆":"🍺";
   if(!winData)return null;
   const{players,sess}=winData;
@@ -1431,7 +1782,7 @@ function Winner({winData,onBack,S}){
                 <div style={{width:48,height:48,borderRadius:"50%",border:`2.5px solid ${c.a}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,background:c.cell}}>{p.avatar||"🎯"}</div>
                 <div style={{fontSize:11,color:c.a,fontWeight:700,textAlign:"center"}}>{p.name}</div>
                 <div style={{fontSize:10,color:"#555"}}>🍺 {p.total_slok||0}</div>
-                <div style={{background:"#1e1e1e",borderRadius:"10px 10px 0 0",height:64,width:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <div style={{background:"#1e1e1e",borderRadius:"10px 10px 0 0",height:64,width:"100%",display:"flex",alignItems:"center",justifyContent:"center",animation:"podiumRise .7s .5s ease-out both",transformOrigin:"bottom"}}>
                   <span className="anto" style={{fontSize:28,color:"#888"}}>2</span>
                 </div>
               </div>
@@ -1439,10 +1790,10 @@ function Winner({winData,onBack,S}){
             {/* 1st */}
             {sorted[0]&&(()=>{const p=sorted[0];const c=COLORS[p.color]||COLORS.rood;return(
               <div className="podium-col" style={{flex:1.2}}>
-                <div style={{width:58,height:58,borderRadius:"50%",border:`3px solid ${c.a}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,background:c.cell,boxShadow:`0 0 16px ${c.a}55`}}>{p.avatar||"🎯"}</div>
-                <div style={{fontSize:13,color:c.a,fontWeight:800,textAlign:"center"}}>{p.name}</div>
-                <div style={{fontSize:11,color:"#e8380d",fontWeight:700}}>🍺 {p.total_slok||0}</div>
-                <div style={{background:"#e8380d",borderRadius:"10px 10px 0 0",height:96,width:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <div style={{width:58,height:58,borderRadius:"50%",border:`3px solid ${c.a}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,background:c.cell,boxShadow:`0 0 16px ${c.a}55`,animation:"playerDrop .6s .9s ease-out both"}}>{p.avatar||"🎯"}</div>
+                <div style={{fontSize:13,color:c.a,fontWeight:800,textAlign:"center",animation:"playerDrop .5s 1s ease-out both"}}>{p.name}</div>
+                <div style={{fontSize:11,color:"#e8380d",fontWeight:700,animation:"playerDrop .5s 1.05s ease-out both"}}>🍺 {p.total_slok||0}</div>
+                <div style={{background:"#e8380d",borderRadius:"10px 10px 0 0",height:96,width:"100%",display:"flex",alignItems:"center",justifyContent:"center",animation:"podiumRise .7s .3s ease-out both",transformOrigin:"bottom"}}>
                   <span className="anto" style={{fontSize:36,color:"#fff"}}>1</span>
                 </div>
               </div>
@@ -1453,7 +1804,7 @@ function Winner({winData,onBack,S}){
                 <div style={{width:44,height:44,borderRadius:"50%",border:`2px solid ${c.a}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,background:c.cell}}>{p.avatar||"🎯"}</div>
                 <div style={{fontSize:10,color:c.a,fontWeight:700,textAlign:"center"}}>{p.name}</div>
                 <div style={{fontSize:9,color:"#555"}}>🍺 {p.total_slok||0}</div>
-                <div style={{background:"#1e1e1e",borderRadius:"10px 10px 0 0",height:44,width:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <div style={{background:"#1e1e1e",borderRadius:"10px 10px 0 0",height:44,width:"100%",display:"flex",alignItems:"center",justifyContent:"center",animation:"podiumRise .7s .65s ease-out both",transformOrigin:"bottom"}}>
                   <span className="anto" style={{fontSize:24,color:"#555"}}>3</span>
                 </div>
               </div>
@@ -1464,32 +1815,42 @@ function Winner({winData,onBack,S}){
         {/* Buttons */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:24}}>
           <button onClick={onBack} style={{padding:"14px 0",background:"transparent",border:"1.5px solid #2a2a2a",borderRadius:14,color:"#fff",fontWeight:900,fontSize:14,cursor:"pointer"}}>Nieuw spel</button>
-          <Btn onClick={onBack} color="#e8380d">Revanche →</Btn>
+          <Btn onClick={async()=>{
+            setRmBusy(true);
+            const pcs=players.map(p=>({color:p.color,name:p.name,avatar:p.avatar,team:p.team||null}));
+            await onRematch(pcs);
+            setRmBusy(false);
+          }} loading={rmBusy} color="#e8380d">🔄 Revanche →</Btn>
         </div>
 
-      {/* Achievements */}
-      {sorted.some(p=>(p.achievements||[]).length>0)&&(
-        <div style={{background:"#111",borderRadius:16,padding:16,marginBottom:16,border:"1px solid #1e1e1e"}}>
-          <div style={{fontWeight:900,color:"#facc15",fontSize:13,letterSpacing:2,marginBottom:12}}>🏅 ACHIEVEMENTS</div>
-          {sorted.map(p=>{
-            const c=COLORS[p.color]||COLORS.rood;
-            const achs=(p.achievements||[]).map(id=>ACHS.find(a=>a.id===id)).filter(Boolean);
-            if(!achs.length)return null;
-            return(
-              <div key={p.color} style={{marginBottom:10}}>
-                <div style={{fontSize:12,color:c.a,fontWeight:800,marginBottom:6}}>{p.avatar||"🎯"} {p.name}</div>
-                <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-                  {achs.map(a=>(
-                    <div key={a.id} style={{background:"#1a1a1a",borderRadius:8,padding:"5px 9px",fontSize:12,border:"1px solid #2a2a2a"}} title={a.d}>
-                      {a.e} {a.lbl}
-                    </div>
-                  ))}
-                </div>
+      {/* Badge-gallerij */}
+      <div style={{background:"#111",borderRadius:16,padding:16,marginBottom:16,border:"1px solid #1e1e1e"}}>
+        <div style={{fontWeight:900,color:"#facc15",fontSize:13,letterSpacing:2,marginBottom:4}}>🏅 BADGE GALLERIJ</div>
+        <div style={{fontSize:11,color:"#555",marginBottom:12}}>Grijs = nog niet behaald</div>
+        {sorted.map(p=>{
+          const c=COLORS[p.color]||COLORS.rood;
+          const earned=new Set(p.achievements||[]);
+          return(
+            <div key={p.color} style={{marginBottom:14}}>
+              <div style={{fontSize:12,color:c.a,fontWeight:800,marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+                <span>{p.avatar||"🎯"}</span>{p.name}
+                <span style={{fontSize:10,color:"#555",fontWeight:400}}>({earned.size}/{ACHS.length} badges)</span>
               </div>
-            );
-          })}
-        </div>
-      )}
+              <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                {ACHS.map(a=>{
+                  const got=earned.has(a.id);
+                  return(
+                    <div key={a.id} title={a.d} style={{background:got?"#1e2a1e":"#161616",borderRadius:9,padding:"5px 9px",fontSize:12,border:`1px solid ${got?c.a+"44":"#222"}`,opacity:got?1:.45,display:"flex",alignItems:"center",gap:4,transition:"opacity .2s"}}>
+                      <span style={{fontSize:15}}>{a.e}</span>
+                      <span style={{color:got?"#ccc":"#555",fontWeight:got?800:400,fontSize:11}}>{a.lbl}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Rating */}
       <div style={{background:"#111",borderRadius:16,padding:16,marginBottom:16,border:"1px solid #1e1e1e"}}>
